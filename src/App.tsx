@@ -577,7 +577,7 @@ export default function App() {
       </header>
 
       {/* MAIN CONTAINER AREA */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 py-8">
+      <main className="flex-1 w-full px-4 sm:px-6 md:px-8 py-6 md:py-8">
         
         <AnimatePresence mode="wait">
           
@@ -994,7 +994,7 @@ export default function App() {
                         ))}
 
                         {activeEvent.requirements[activeWorkspaceTab as "food" | "beverage" | "setup" | "av" | "other"].length === 0 && (
-                          <div className="text-center py-10 bg-stone-50 border border-dashed border-stone-250 p-6 rounded-lg text-stone-500 italic" id="empty-workspace-notification">
+                          <div className="text-center py-5 px-4 bg-stone-50 border border-dashed border-stone-250 rounded-lg text-stone-500 italic text-sm" id="empty-workspace-notification">
                             No custom specifications configured for this section. Search the catalog or write a custom item below to initialize requirements!
                           </div>
                         )}
