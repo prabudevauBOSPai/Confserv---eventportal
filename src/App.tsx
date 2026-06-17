@@ -31,7 +31,11 @@ import {
   User,
   Info,
   Eye,
-  X
+  X,
+  Ticket,
+  Mail,
+  Smartphone,
+  Bot
 } from "lucide-react";
 
 import {
@@ -58,7 +62,7 @@ import ExcelExtractorMock from "./components/ExcelExtractorMock";
 export default function App() {
   // Navigation & Screen Views
   // "landing" | "workspace" | "locked"
-  const [currentView, setCurrentView] = useState<"landing" | "workspace" | "locked">("landing");
+  const [currentView, setCurrentView] = useState<"landing" | "workspace" | "locked" | "communications">("landing");
   
   // App core state
   const [booking, setBooking] = useState<Booking>(INITIAL_BOOKING);
@@ -70,6 +74,8 @@ export default function App() {
   // Interactive triggers
   const [cutoffLocked, setCutoffLocked] = useState<boolean>(false); // Can simulate RED LOCK scenario
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState<boolean>(false);
+  const [isComposerOpen, setIsComposerOpen] = useState<boolean>(false);
+  const [composerType, setComposerType] = useState<"email" | "sms" | "ticket" | "chat">("chat");
   const [isBEOOpen, setIsBEOOpen] = useState<boolean>(false);
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   
@@ -86,6 +92,10 @@ export default function App() {
   const [chatInput, setChatInput] = useState<string>("");
   const [isChatTyping, setIsChatTyping] = useState<boolean>(false);
   const [isChatWidgetOpen, setIsChatWidgetOpen] = useState<boolean>(false);
+  const [activeChatContext, setActiveChatContext] = useState<"coordinator" | "ai">("coordinator");
+  const [aiChatMessages, setAiChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
+    {role: "ai", text: "Hi! I am your AI assistant for Hotel Bardo Savannah. I can answer questions about menus, policies, layouts, and past similar events."}
+  ]);
 
   // Filter Schedule Panel states (Crucial for handling 20, 80, 100+ events!)
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>("ALL"); // "ALL" or specific YYYY-MM-DD
@@ -325,45 +335,68 @@ export default function App() {
     });
   }, [catalogSearch, catalogCategory]);
 
-  // Client messaging interaction CSM Larissa
+  // Client messaging interaction CSM Larissa & AI
   const handleSendChatMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: "client",
-      text: chatInput.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    };
-
-    setChatMessages(prev => [...prev, userMsg]);
-    setChatInput("");
-    setIsChatTyping(true);
-
-    // Simulate smart Larissa Szynski Coordinator Auto-response
-    setTimeout(() => {
-      setIsChatTyping(false);
-      let larissaReply = "Thank you so much for your update! I am checking on these event details right now. Let me know if you would like me to adjust any room diagram options as well.";
-      
-      const textLower = userMsg.text.toLowerCase();
-      if (textLower.includes("bar") || textLower.includes("drink") || textLower.includes("spirit")) {
-        larissaReply = `Absolutely! For the bar, I can confirm we serve ${booking.propertyName} custom-infused gin batches. Adding signature cocktails on consumption is highly recommended for group guest counts!`;
-      } else if (textLower.includes("audio") || textLower.includes("av") || textLower.includes("screen") || textLower.includes("microphone")) {
-        larissaReply = "Roger that! Regarding AV: our outside vendor logistics patch fee covers full audio connection to the ceiling sound bar systems. Let me know if you need high-power projectors instead!";
-      } else if (textLower.includes("locked") || textLower.includes("cutoff") || textLower.includes("extension")) {
-        larissaReply = "If you need adjustments near the cutoff, don't worry! I can bypass the block for F&B updates. Go ahead and submit, and I will approve it internally on your Banquet orders.";
-      } else if (textLower.includes("hello") || textLower.includes("hi") || textLower.includes("larissa")) {
-        larissaReply = `Wonderful to hear from you! Please feel free to add items from the ${booking.propertyName} catalog. I will receive your order immediately once you click 'Submit Final'.`;
-      }
-
-      setChatMessages(prev => [...prev, {
-        id: `msg-rep-${Date.now()}`,
-        sender: " Larissa Szynski (CSM)",
-        text: larissaReply,
+    const userInput = chatInput.trim();
+    
+    if (activeChatContext === "coordinator") {
+      const userMsg: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        sender: "client",
+        text: userInput,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      }]);
-    }, 1800);
+      };
+
+      setChatMessages(prev => [...prev, userMsg]);
+      setChatInput("");
+      setIsChatTyping(true);
+
+      // Simulate smart Larissa Szynski Coordinator Auto-response
+      setTimeout(() => {
+        setIsChatTyping(false);
+        let larissaReply = "Thank you so much for your update! I am checking on these event details right now. Let me know if you would like me to adjust any room diagram options as well.";
+        
+        const textLower = userMsg.text.toLowerCase();
+        if (textLower.includes("bar") || textLower.includes("drink") || textLower.includes("spirit")) {
+          larissaReply = `Absolutely! For the bar, I can confirm we serve ${booking.propertyName} custom-infused gin batches. Adding signature cocktails on consumption is highly recommended for group guest counts!`;
+        } else if (textLower.includes("audio") || textLower.includes("av") || textLower.includes("screen") || textLower.includes("microphone")) {
+          larissaReply = "Roger that! Regarding AV: our outside vendor logistics patch fee covers full audio connection to the ceiling sound bar systems. Let me know if you need high-power projectors instead!";
+        } else if (textLower.includes("locked") || textLower.includes("cutoff") || textLower.includes("extension")) {
+          larissaReply = "If you need adjustments near the cutoff, don't worry! I can bypass the block for F&B updates. Go ahead and submit, and I will approve it internally on your Banquet orders.";
+        } else if (textLower.includes("hello") || textLower.includes("hi") || textLower.includes("larissa")) {
+          larissaReply = `Wonderful to hear from you! Please feel free to add items from the ${booking.propertyName} catalog. I will receive your order immediately once you click 'Submit Final'.`;
+        }
+
+        setChatMessages(prev => [...prev, {
+          id: `msg-rep-${Date.now()}`,
+          sender: " Larissa Szynski (CSM)",
+          text: larissaReply,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }]);
+      }, 1800);
+    } else {
+      // AI Context
+      setAiChatMessages(prev => [...prev, { role: "user", text: userInput }]);
+      setChatInput("");
+      setIsChatTyping(true);
+      
+      setTimeout(() => {
+        setIsChatTyping(false);
+        let aiReply = "Based on hotel guidelines, that is completely doable. Let me know if you'd me to like help find catalog items for this.";
+        const textLower = userInput.toLowerCase();
+        
+        if (textLower.includes("menu") || textLower.includes("food") || textLower.includes("dinner")) {
+          aiReply = "Hotel Bardo's culinary program emphasizes coastal Italian influences with fresh, local Georgian produce. For main dinners, the Seared Scallops and the 72-Hour Short Rib are historical customer favorites.";
+        } else if (textLower.includes("layout") || textLower.includes("capacity") || textLower.includes("room")) {
+          aiReply = "For the Ballroom, standard rounds of 10 yield a maximum of 400 guests, while a reception-style layout supports up to 600.";
+        }
+        
+        setAiChatMessages(prev => [...prev, { role: "ai", text: aiReply }]);
+      }, 1200);
+    }
   };
 
   // Modal differences calculations (Side-by-side Diff comparison list)
@@ -458,13 +491,13 @@ export default function App() {
       {/* Main Header Block */}
       <header className="bg-white border-b border-stone-200/80 sticky top-0 z-40 shadow-sm px-6 py-4 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-6">
-          {/* Logo Brand Title */}
+          {/* -Logo Brand Title */}
           <div className="cursor-pointer select-none group" onClick={() => setCurrentView("landing")}>
             <span className="font-sans text-xl font-black bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent block tracking-wide" id="header-brand-title">
-              EventHQ
+              ConfServ
             </span>
             <span className="text-[10px] tracking-widest text-stone-500 font-mono font-medium block uppercase group-hover:text-blue-500 transition-colors">
-              Planning Portal
+              Conference Services
             </span>
           </div>
           <div className="h-6 w-px bg-stone-200" />
@@ -570,11 +603,11 @@ export default function App() {
 
                   <div className="relative z-10 space-y-6">
                     <span className="inline-block px-4 py-1.5 rounded-full bg-white text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm border border-slate-100">
-                      🎉 {booking.title}
+                      Welcome back, {booking.contactName}
                     </span>
                     
                     <h2 className="font-sans text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-800">
-                      Welcome back, <br/><span className="text-blue-600 inline-block mt-2">{booking.contactName}</span>
+                      <span className="text-blue-600 inline-block mt-2">{booking.title}</span>
                     </h2>
                     
                     <p className="text-lg text-slate-500 max-w-2xl font-medium leading-relaxed">
@@ -1289,7 +1322,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {/* ==================== 3. FINAL PACKAGE / LOCKED STATE ==================== */}
+          {/* ==================== 4. FINAL PACKAGE / LOCKED STATE ==================== */}
           {currentView === "locked" && (
             <motion.div
               key="locked"
@@ -1430,100 +1463,321 @@ export default function App() {
 
       </main>
 
-      {/* Floating Chat Button */}
-      {currentView === "workspace" && !isChatWidgetOpen && (
+      {/* Composer Modal */}
+      <AnimatePresence>
+        {isComposerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white p-0 rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 overflow-hidden flex flex-col"
+            >
+              {/* Header */}
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {composerType === 'email' && <Mail className="w-5 h-5 text-blue-600" />}
+                  {composerType === 'chat' && <MessageSquare className="w-5 h-5 text-indigo-600" />}
+                  {composerType === 'sms' && <Smartphone className="w-5 h-5 text-fuchsia-600" />}
+                  {composerType === 'ticket' && <Ticket className="w-5 h-5 text-amber-600" />}
+                  <h3 className="text-lg font-bold text-slate-800">
+                    {composerType === 'email' && "Compose Email"}
+                    {composerType === 'chat' && "New Portal Message"}
+                    {composerType === 'sms' && "Send SMS"}
+                    {composerType === 'ticket' && "Raise Support Ticket"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsComposerOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-md"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4">
+                {composerType === 'email' && (
+                  <>
+                    <input type="text" placeholder="To: customer@example.com" className="w-full bg-slate-50 border border-slate-200 py-2 px-4 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                    <input type="text" placeholder="Subject" className="w-full bg-slate-50 border border-slate-200 py-2 px-4 rounded-lg text-sm focus:outline-none focus:border-blue-500" />
+                  </>
+                )}
+                {composerType === 'ticket' && (
+                  <input type="text" placeholder="Issue Title" className="w-full bg-slate-50 border border-slate-200 py-2 px-4 rounded-lg text-sm focus:outline-none focus:border-amber-500" />
+                )}
+                
+                <textarea 
+                  rows={6}
+                  placeholder={
+                    composerType === 'email' ? "Write your email message..." :
+                    composerType === 'sms' ? "Text message content..." :
+                    composerType === 'ticket' ? "Describe the support inquiry..." :
+                    "Message the coordinator..."
+                  }
+                  className={`w-full bg-slate-50 border border-slate-200 py-3 px-4 rounded-lg text-sm focus:outline-none resize-none ${
+                    composerType === 'email' ? 'focus:border-blue-500' :
+                    composerType === 'sms' ? 'focus:border-fuchsia-500' :
+                    composerType === 'ticket' ? 'focus:border-amber-500' :
+                    'focus:border-indigo-500'
+                  }`}
+                ></textarea>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-end gap-3">
+                <button 
+                  onClick={() => setIsComposerOpen(false)}
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => setIsComposerOpen(false)}
+                  className={`px-5 py-2 text-sm font-bold text-white rounded-lg shadow-sm transition-colors cursor-pointer ${
+                    composerType === 'email' ? 'bg-blue-600 hover:bg-blue-700' :
+                    composerType === 'sms' ? 'bg-fuchsia-600 hover:bg-fuchsia-700' :
+                    composerType === 'ticket' ? 'bg-amber-600 hover:bg-amber-700' :
+                    'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  {composerType === 'ticket' ? 'Submit Ticket' : 'Send'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Chat/Inbox Button */}
+      {!isChatWidgetOpen && (
         <button
           onClick={() => setIsChatWidgetOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 z-40"
+          className="fixed bottom-6 right-6 w-16 h-16 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-105 z-40 border-4 border-white"
           id="open-floating-chat-btn"
         >
-          <MessageSquare className="w-6 h-6" />
-          {chatMessages.length > 3 && (
-            <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-          )}
+          <div className="relative">
+             <MessageSquare className="w-6 h-6" />
+             <span className="absolute -top-2 -right-2 w-3.5 h-3.5 bg-blue-500 rounded-full border-2 border-slate-900" />
+          </div>
         </button>
       )}
 
-      {/* Floating Chat Panel */}
+      {/* Floating / Pop-up Communications Panel */}
       <AnimatePresence>
         {isChatWidgetOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-6 right-6 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col h-[500px]"
-            id="floating-chat-panel"
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 right-6 w-[90vw] md:w-[800px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[80vh] md:h-[600px]"
+            id="communications-popup"
           >
-            {/* Header */}
-            <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-400/30 flex text-blue-300 items-center justify-center font-serif font-bold text-sm">
-                  LS
+              {/* Sidebar (Message List) */}
+              <div className="w-full md:w-[320px] shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col">
+                <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
+                  <h3 className="font-sans text-lg font-bold text-slate-800 tracking-tight">Inbox & Support</h3>
+                  <button onClick={() => setIsChatWidgetOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-100 leading-none">Larissa Szynski</h3>
-                  <p className="text-[10px] text-blue-300 mt-0.5">CSM Coordinator (Online)</p>
+                <div className="p-3 bg-white border-b border-slate-200">
+                  <div className="relative">
+                    <input type="text" placeholder="Search entries..." className="w-full bg-slate-100 border border-slate-200 rounded-lg py-2 pl-3 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {/* AI Assistant Item */}
+                  <div 
+                    onClick={() => setActiveChatContext("ai")}
+                    className={`p-4 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "ai" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-bold text-slate-800">AI Event Assistant</span>
+                      <span className="text-xs text-slate-500 font-mono">Online</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Bot className={`w-3.5 h-3.5 ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`} />
+                      <span className={`text-xs font-semibold ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`}>24/7 AI Support</span>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2">"Hi! I am your AI assistant for Hotel Bardo Savannah..."</p>
+                  </div>
+
+                  {/* Selected Item / Coordinator Item */}
+                  <div 
+                    onClick={() => setActiveChatContext("coordinator")}
+                    className={`p-4 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "coordinator" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-bold text-slate-800">Coordinator (Portal Message)</span>
+                      <span className="text-xs text-slate-500 font-mono">2:45 PM</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <MessageSquare className={`w-3.5 h-3.5 ${activeChatContext === "coordinator" ? "text-blue-600" : "text-slate-500"}`} />
+                      <span className={`text-xs font-semibold ${activeChatContext === "coordinator" ? "text-blue-600" : "text-slate-500"}`}>Chat</span>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2">"Hi! I see you updated the AV numbers. Should I resend the updated quote for your review?"</p>
+                  </div>
+                  
+                  {/* Item */}
+                  <div className="p-4 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-bold text-slate-800">Booking Confirmation</span>
+                      <span className="text-xs text-slate-500 font-mono">Yesterday</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Mail className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="text-xs font-semibold text-slate-500">Email</span>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2">"Thanks for the update. We will finalize the requirements by tomorrow morning."</p>
+                  </div>
+
+                  {/* Item */}
+                  <div className="p-4 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-sm font-bold text-slate-800">Support Ticket #8492</span>
+                      <span className="text-xs text-slate-500 font-mono">Yesterday</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Ticket className="w-3.5 h-3.5 text-amber-600" />
+                      <span className="text-xs font-semibold text-amber-600">Pending</span>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2">Review link recovery request</p>
+                  </div>
+                </div>
+
+                {/* Bottom Actions Compose */}
+                <div className="p-4 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => { setComposerType("email"); setIsComposerOpen(true); }}
+                    className="flex w-full justify-center items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 shadow-sm transition-colors cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5" /> Email
+                  </button>
+                  <button 
+                    onClick={() => { setComposerType("ticket"); setIsComposerOpen(true); }}
+                    className="flex w-full justify-center items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold text-amber-700 shadow-sm transition-colors cursor-pointer"
+                  >
+                    <Ticket className="w-3.5 h-3.5" /> Ticket
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setIsChatWidgetOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-md"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Chat Body */}
-            <div className="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4 scrollbar-thin">
-              {chatMessages.map((msg) => {
-                const isLarissa = msg.sender.includes("Larissa");
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col gap-1 max-w-[85%] ${isLarissa ? "self-start" : "self-end items-end text-right ml-auto"}`}
-                  >
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-                      <span className="font-semibold text-slate-600">{msg.sender}</span>
-                      <span>{msg.timestamp}</span>
-                    </div>
-                    <div className={`p-3 rounded-2xl text-sm leading-relaxed ${
-                      isLarissa 
-                        ? "bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm" 
-                        : "bg-blue-600 text-white rounded-tr-none text-left shadow-sm"
-                    }`}>
-                      {msg.text}
+              {/* Main Panel (Thread View) */}
+              <div className="hidden md:flex flex-1 bg-white flex-col h-full relative">
+                 <button onClick={() => setIsChatWidgetOpen(false)} className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 shadow-sm border border-slate-200"><X className="w-5 h-5"/></button>
+                
+                {/* Thread Header */}
+                <div className="p-6 border-b border-slate-200 bg-slate-50 flex items-start justify-between shrink-0">
+                  <div className="pr-12">
+                    <h2 className="text-lg font-bold text-slate-800 leading-snug">
+                       {activeChatContext === "coordinator" ? "Coordinator Chat" : "AI Event Assistant"}
+                    </h2>
+                    <div className="flex items-center gap-3 mt-1.5">
+                       {activeChatContext === "coordinator" ? (
+                         <>
+                           <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center border border-indigo-200">LS</div>
+                           <span className="text-xs text-slate-500"><strong>Larissa Szynski</strong> - Online</span>
+                         </>
+                       ) : (
+                         <>
+                           <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center border border-blue-200"><Bot className="w-3.5 h-3.5" /></div>
+                           <span className="text-xs text-slate-500"><strong>AI Assistant</strong> - Always Online</span>
+                         </>
+                       )}
                     </div>
                   </div>
-                );
-              })}
-
-              {isChatTyping && (
-                <div className="text-slate-400 italic text-xs animate-pulse flex items-center gap-2 py-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
-                  <span>Larissa is typing...</span>
                 </div>
-              )}
-            </div>
 
-            {/* Chat Input */}
-            <div className="p-3 border-t border-slate-200 bg-white">
-              <form onSubmit={handleSendChatMessage} className="flex gap-2">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Message Larissa..."
-                  className="flex-1 bg-slate-50 border border-slate-200 py-2 px-4 text-sm rounded-full focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-                />
-                <button
-                  type="submit"
-                  disabled={!chatInput.trim()}
-                  className="w-10 h-10 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-full flex items-center justify-center transition-colors shadow-sm shrink-0"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
-                </button>
-              </form>
-            </div>
+                {/* Thread Content */}
+                <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+                   {activeChatContext === "coordinator" ? (
+                      <>
+                         {chatMessages.map((msg) => {
+                           const isLarissa = msg.sender.includes("Larissa");
+                           return (
+                             <div
+                               key={msg.id}
+                               className={`flex flex-col gap-1 max-w-[85%] ${isLarissa ? "self-start" : "self-end items-end text-right ml-auto"}`}
+                             >
+                               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                                 <span className="font-semibold text-slate-600">{msg.sender}</span>
+                                 <span>{msg.timestamp}</span>
+                               </div>
+                               <div className={`p-4 rounded-2xl text-sm leading-relaxed border ${
+                                 isLarissa 
+                                   ? "bg-white border-slate-200 text-slate-800 rounded-tl-none shadow-sm" 
+                                   : "bg-indigo-600 border-indigo-600 text-white rounded-tr-none text-left shadow-sm"
+                               }`}>
+                                 {msg.text}
+                               </div>
+                             </div>
+                           );
+                         })}
+                         {isChatTyping && (
+                           <div className="text-slate-400 italic text-xs animate-pulse flex items-center gap-2 py-2">
+                             <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
+                             <span>Larissa is typing...</span>
+                           </div>
+                         )}
+                      </>
+                   ) : (
+                      <>
+                         {aiChatMessages.map((msg, i) => {
+                           const isAi = msg.role === "ai";
+                           return (
+                             <div
+                               key={i}
+                               className={`flex flex-col gap-1 max-w-[85%] ${isAi ? "self-start" : "self-end items-end text-right ml-auto"}`}
+                             >
+                               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                                 <span className="font-semibold text-slate-600">{isAi ? "AI Assistant" : booking.contactName}</span>
+                                 <span>Just now</span>
+                               </div>
+                               <div className={`p-4 rounded-2xl text-sm leading-relaxed border ${
+                                 isAi 
+                                   ? "bg-white border-slate-200 text-slate-800 rounded-tl-none shadow-sm" 
+                                   : "bg-blue-600 border-blue-600 text-white rounded-tr-none text-left shadow-sm"
+                               }`}>
+                                 {msg.text}
+                               </div>
+                             </div>
+                           );
+                         })}
+                         {isChatTyping && (
+                           <div className="text-slate-400 italic text-xs animate-pulse flex items-center gap-2 py-2">
+                             <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
+                             <span>AI is thinking...</span>
+                           </div>
+                         )}
+                      </>
+                   )}
+                </div>
+                
+                {/* Chat Input Inline */}
+                <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+                  <form onSubmit={handleSendChatMessage} className="flex gap-2 relative">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder={activeChatContext === "coordinator" ? "Reply to Larissa in portal..." : "Ask AI planner..."}
+                      className={`flex-1 bg-slate-50 border border-slate-200 py-3 pl-4 pr-12 text-sm rounded-xl focus:outline-none focus:bg-white transition-colors ${activeChatContext === "coordinator" ? "focus:border-indigo-500" : "focus:border-blue-500"}`}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!chatInput.trim() || isChatTyping}
+                      className={`absolute right-2 top-2 w-8 h-8 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg flex items-center justify-center transition-colors shadow-sm shrink-0 ${activeChatContext === "coordinator" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                    >
+                      <Send className="w-3.5 h-3.5 ml-0.5" />
+                    </button>
+                  </form>
+                </div>
+                
+              </div>
           </motion.div>
         )}
       </AnimatePresence>
