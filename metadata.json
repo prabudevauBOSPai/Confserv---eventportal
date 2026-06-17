@@ -1,0 +1,6 @@
+{
+  "name": "Hotel Bardo Event Portal",
+  "description": "Premium customer-facing event planning and BEO management portal for Hotel Bardo Savannah.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
