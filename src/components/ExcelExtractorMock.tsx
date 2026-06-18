@@ -20,6 +20,7 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<"idle" | "uploading" | "extracting" | "success">("idle");
   const [extractedQty, setExtractedQty] = useState(45); // Simulation adds e.g. 45 events
+  const [pastedText, setPastedText] = useState("");
 
   const presets = [
     { name: "AGENDA_Luxe-Spring-Launch_2026-04-08.pdf", size: "1.2 MB", count: 20 },
@@ -57,7 +58,7 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
   };
 
   const startExtraction = () => {
-    if (!file) return;
+    if (!file && !pastedText) return;
     setStatus("uploading");
     setProgress(0);
 
@@ -84,8 +85,10 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
     }, 2000);
   };
 
+    const payloadName = file ? file.name : "pasted raw text data";
+
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-8 bardo-shadow-lg max-w-2xl mx-auto" id="extractor-card">
+    <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-xl max-w-2xl mx-auto" id="extractor-card">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-amber-50 rounded-lg text-amber-800">
@@ -100,36 +103,6 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
 
       {status === "idle" && (
         <div className="space-y-6">
-          {/* Preset Buttons */}
-          <div>
-            <span className="text-xs font-semibold text-stone-500 tracking-wider uppercase block mb-3">Or choose a pre-configured sample workbook:</span>
-            <div className="grid grid-cols-1 gap-2.5">
-              {presets.map((preset, index) => (
-                <button
-                  key={index}
-                  onClick={() => selectPreset(preset)}
-                  className={`flex items-center justify-between p-3.5 rounded-lg border text-left transition-all ${
-                    file?.name === preset.name
-                      ? "border-amber-500 bg-amber-50/40 text-amber-900"
-                      : "border-stone-200 hover:border-stone-300 hover:bg-stone-50 text-stone-800"
-                  }`}
-                  id={`preset-btn-${index}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className={`w-5 h-5 ${file?.name === preset.name ? "text-amber-700" : "text-stone-400"}`} />
-                    <div>
-                      <span className="text-sm font-medium block">{preset.name}</span>
-                      <span className="text-xs text-stone-500">{preset.size} • Extracts {preset.count} fully qualified events</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {preset.count === 20 ? "Standard" : preset.count === 80 ? "Medium Scale" : "Heavy Load"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Drag & Drop Zone */}
           <div
             onDragEnter={handleDrag}
@@ -153,6 +126,7 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
                     name: e.target.files[0].name,
                     size: (e.target.files[0].size / (1024 * 1024)).toFixed(1) + " MB"
                   });
+                  setPastedText(""); // Clear text if file selected
                 }
               }}
             />
@@ -161,9 +135,25 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
               <p className="text-sm font-medium text-stone-800">
                 Drag and drop your agenda file here or <span className="text-amber-800 underline">browse</span>
               </p>
-              <p className="text-xs text-stone-500 mt-1">Supports EXCEL (.xlsx, .xls), CSV or Banquet PDFs</p>
+              <p className="text-xs text-stone-500 mt-1">Supports EXCEL, CSV or Banquet PDFs</p>
             </label>
           </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-stone-200" />
+            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">OR PASTE TEXT</span>
+            <div className="flex-1 h-px bg-stone-200" />
+          </div>
+
+          <textarea
+            value={pastedText}
+            onChange={(e) => {
+              setPastedText(e.target.value);
+              if (e.target.value) setFile(null); // Clear file if text is pasted
+            }}
+            placeholder="Paste your raw agenda text directly here..."
+            className="w-full h-32 bg-stone-50 border border-stone-200 rounded-lg p-4 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white resize-none"
+          />
 
           {file && (
             <div className="flex items-center justify-between p-3.5 bg-stone-50 rounded-lg border border-stone-200 animate-fadeIn" id="selected-file-banner">
@@ -193,10 +183,10 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
               Cancel
             </button>
             <button
-              disabled={!file}
+              disabled={!file && !pastedText}
               onClick={startExtraction}
               className={`flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-md transition-all ${
-                file
+                file || pastedText
                   ? "bg-amber-800 text-white hover:bg-amber-900 shadow-md cursor-pointer"
                   : "bg-stone-100 text-stone-400 cursor-not-allowed"
               }`}
@@ -214,8 +204,8 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
         <div className="text-center py-12 space-y-6">
           <Loader2 className="w-12 h-12 text-amber-800 animate-spin mx-auto" />
           <div className="space-y-2">
-            <h4 className="font-medium text-stone-800">Uploading File to Secured Hotel Bardo Hub...</h4>
-            <p className="text-xs text-stone-500">Transmitting package {file?.name}</p>
+            <h4 className="font-medium text-stone-800">Uploading Content to Secured Hotel Bardo Hub...</h4>
+            <p className="text-xs text-stone-500">Transmitting: {payloadName}</p>
           </div>
           <div className="w-full bg-stone-100 rounded-full h-2 max-w-sm mx-auto overflow-hidden">
             <div
@@ -254,7 +244,7 @@ export default function ExcelExtractorMock({ onEventsExtracted, onCancel }: Exce
           <div className="space-y-2">
             <h4 className="font-serif text-xl font-bold text-stone-900">Extraction Complete!</h4>
             <p className="text-sm text-stone-600 max-w-md mx-auto">
-              Our AI has successfully read <span className="font-medium text-stone-800">{file?.name}</span> and auto-aligned <span className="font-bold text-emerald-800 text-base">{extractedQty} events</span> directly into your online workspace portfolio.
+              Our AI has successfully read <span className="font-medium text-stone-800">{payloadName}</span> and auto-aligned <span className="font-bold text-emerald-800 text-base">{extractedQty} events</span> directly into your online workspace portfolio.
             </p>
           </div>
           <div className="pt-4">

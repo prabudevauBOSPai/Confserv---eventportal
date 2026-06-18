@@ -580,7 +580,7 @@ export default function App() {
       </header>
 
       {/* MAIN CONTAINER AREA */}
-      <main className="flex-1 w-full px-4 sm:px-6 md:px-8 py-6 md:py-8">
+      <main className="flex-1 w-full px-2 sm:px-4 md:px-6 py-4">
         
         <AnimatePresence mode="wait">
           
@@ -592,14 +592,14 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="space-y-8"
+              className="space-y-4"
               id="landing-view-viewport"
             >
               {/* Single Section Landing View */}
-              <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col lg:flex-row min-h-[calc(100vh-250px)]" id="single-landing-section">
+              <div className="bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col lg:flex-row min-h-[calc(100vh-180px)]" id="single-landing-section">
                 
                 {/* Left Side: Welcome, Stats & Actions */}
-                <div className="flex-1 lg:w-[65%] xl:w-[70%] bg-gradient-to-br from-blue-50/80 via-white to-purple-50/50 p-8 md:p-12 lg:p-16 flex flex-col relative overflow-hidden justify-between">
+                <div className="flex-1 lg:w-[65%] xl:w-[70%] bg-gradient-to-br from-blue-50/80 via-white to-purple-50/50 p-6 md:p-8 lg:p-10 flex flex-col relative overflow-hidden justify-between">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-fuchsia-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
@@ -657,7 +657,7 @@ export default function App() {
                   </div>
                   
                   {isUploadOpen && (
-                    <div className="absolute bottom-28 left-8 right-8 z-20 bg-white/95 backdrop-blur-sm p-2 rounded-2xl shadow-2xl border border-blue-100 animate-fadeIn" id="ai-uploader-section">
+                    <div className="absolute bottom-28 left-8 right-8 z-20 animate-fadeIn drop-shadow-2xl" id="ai-uploader-section">
                       <ExcelExtractorMock
                         onEventsExtracted={(newEvents) => {
                           setEvents(newEvents);
@@ -672,7 +672,7 @@ export default function App() {
                 </div>
 
                 {/* Right Side: Coordinator & Info */}
-                <div className="w-full lg:w-[35%] xl:w-[30%] bg-slate-50 border-l border-slate-200 p-8 md:p-12 flex flex-col justify-between">
+                <div className="w-full lg:w-[35%] xl:w-[30%] bg-slate-50 border-l border-slate-200 p-6 md:p-8 flex flex-col justify-between">
                   {/* Coordinator Profile */}
                   <div className="space-y-6">
                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-2">Your Coordinator</h4>
@@ -740,7 +740,7 @@ export default function App() {
               id="workspace-view-viewport"
             >
               {/* Start Two Column Master-Detail Grid: Left sidebar select (1), center workspace (2) */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 
                 {/* ==================== COLUMN 1: INTERACTIVE EVENT SELECTOR (LEFT) ==================== */}
                 <div className="md:col-span-4 lg:col-span-3 h-[750px]">
@@ -1374,7 +1374,7 @@ export default function App() {
             >
               {!cutoffLocked ? (
                 // PRE-SUBMISSION STATE (Final Review)
-                <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50/50 p-8 md:p-12 lg:p-16 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50/50 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
@@ -1410,7 +1410,7 @@ export default function App() {
                 </div>
               ) : (
                 // SUCCESS SUBMITTED STATE
-                <div className="flex-1 bg-gradient-to-br from-emerald-50 via-white to-blue-50/50 p-8 md:p-12 lg:p-16 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="flex-1 bg-gradient-to-br from-emerald-50 via-white to-blue-50/50 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
@@ -1454,7 +1454,7 @@ export default function App() {
               )}
 
               {/* Right Side: Next Steps (Visible in both states) */}
-              <div className="w-full md:w-[40%] xl:w-[35%] bg-slate-50 border-l border-slate-200 p-8 md:p-12 flex flex-col justify-center">
+              <div className="w-full md:w-[40%] xl:w-[35%] bg-slate-50 border-l border-slate-200 p-6 md:p-8 flex flex-col justify-center">
                 <h4 className="font-sans text-xl font-bold text-slate-800 mb-8 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-500" />
                   What Happens Next?
@@ -1614,117 +1614,117 @@ export default function App() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-[90vw] md:w-[800px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[80vh] md:h-[600px] resize min-w-[320px] min-h-[400px] max-w-[95vw] max-h-[90vh]"
+            className="fixed bottom-6 right-6 w-[80vw] md:w-[650px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[70vh] md:h-[500px] resize min-w-[320px] min-h-[400px] max-w-[95vw] max-h-[90vh]"
             id="communications-popup"
           >
               {/* Sidebar (Message List) */}
-              <div className="w-full md:w-[320px] shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col">
-                <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
-                  <h3 className="font-sans text-lg font-bold text-slate-800 tracking-tight">Inbox & Support</h3>
-                  <button onClick={() => setIsChatWidgetOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
+              <div className="w-full md:w-[260px] shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col">
+                <div className="p-3 border-b border-slate-200 bg-white flex justify-between items-center">
+                  <h3 className="font-sans text-base font-bold text-slate-800 tracking-tight">Inbox & Support</h3>
+                  <button onClick={() => setIsChatWidgetOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600"><X className="w-4 h-4"/></button>
                 </div>
-                <div className="p-3 bg-white border-b border-slate-200">
+                <div className="p-2 bg-white border-b border-slate-200">
                   <div className="relative">
-                    <input type="text" placeholder="Search entries..." className="w-full bg-slate-100 border border-slate-200 rounded-lg py-2 pl-3 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                    <input type="text" placeholder="Search entries..." className="w-full bg-slate-100 border border-slate-200 rounded-lg py-1.5 pl-2.5 pr-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" />
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                   {/* AI Assistant Item */}
                   <div 
                     onClick={() => setActiveChatContext("ai")}
-                    className={`p-4 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "ai" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
+                    className={`p-3 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "ai" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
                   >
                     <div className="flex justify-between items-start mb-1">
                       <span className="text-sm font-bold text-slate-800">AI Event Assistant</span>
-                      <span className="text-xs text-slate-500 font-mono">Online</span>
+                      <span className="text-[10px] text-slate-500 font-mono">Online</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <Bot className={`w-3.5 h-3.5 ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`} />
-                      <span className={`text-xs font-semibold ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`}>24/7 AI Support</span>
+                      <span className={`text-[10px] font-semibold ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`}>24/7 AI Support</span>
                     </div>
-                    <p className="text-xs text-slate-600 line-clamp-2">"Hi! I am your AI assistant for Hotel Bardo Savannah..."</p>
+                    <p className="text-[10px] text-slate-600 line-clamp-2">"Hi! I am your AI assistant for Hotel Bardo Savannah..."</p>
                   </div>
 
                   {/* Selected Item / Coordinator Item */}
                   <div 
                     onClick={() => setActiveChatContext("coordinator")}
-                    className={`p-4 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "coordinator" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
+                    className={`p-3 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "coordinator" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-bold text-slate-800">Coordinator (Portal Message)</span>
-                      <span className="text-xs text-slate-500 font-mono">2:45 PM</span>
+                      <span className="text-sm font-bold text-slate-800">Coordinator</span>
+                      <span className="text-[10px] text-slate-500 font-mono">2:45 PM</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <MessageSquare className={`w-3.5 h-3.5 ${activeChatContext === "coordinator" ? "text-blue-600" : "text-slate-500"}`} />
-                      <span className={`text-xs font-semibold ${activeChatContext === "coordinator" ? "text-blue-600" : "text-slate-500"}`}>Chat</span>
+                      <span className={`text-[10px] font-semibold ${activeChatContext === "coordinator" ? "text-blue-600" : "text-slate-500"}`}>Chat</span>
                     </div>
-                    <p className="text-xs text-slate-600 line-clamp-2">"Hi! I see you updated the AV numbers. Should I resend the updated quote for your review?"</p>
+                    <p className="text-[10px] text-slate-600 line-clamp-2">"Hi! I see you updated the AV numbers. Should I resend the updated quote for your review?"</p>
                   </div>
                   
                   {/* Item */}
-                  <div className="p-4 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                  <div className="p-3 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
                     <div className="flex justify-between items-start mb-1">
                       <span className="text-sm font-bold text-slate-800">Booking Confirmation</span>
-                      <span className="text-xs text-slate-500 font-mono">Yesterday</span>
+                      <span className="text-[10px] text-slate-500 font-mono">Yesterday</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <Mail className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="text-xs font-semibold text-slate-500">Email</span>
+                      <span className="text-[10px] font-semibold text-slate-500">Email</span>
                     </div>
-                    <p className="text-xs text-slate-600 line-clamp-2">"Thanks for the update. We will finalize the requirements by tomorrow morning."</p>
+                    <p className="text-[10px] text-slate-600 line-clamp-2">"Thanks for the update. We will finalize the requirements by tomorrow morning."</p>
                   </div>
 
                   {/* Item */}
-                  <div className="p-4 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
+                  <div className="p-3 border-b border-slate-200 hover:bg-slate-100 cursor-pointer transition-colors border-l-4 border-l-transparent">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-bold text-slate-800">Support Ticket #8492</span>
-                      <span className="text-xs text-slate-500 font-mono">Yesterday</span>
+                      <span className="text-sm font-bold text-slate-800">Ticket #8492</span>
+                      <span className="text-[10px] text-slate-500 font-mono">Yesterday</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
                       <Ticket className="w-3.5 h-3.5 text-amber-600" />
-                      <span className="text-xs font-semibold text-amber-600">Pending</span>
+                      <span className="text-[10px] font-semibold text-amber-600">Pending</span>
                     </div>
-                    <p className="text-xs text-slate-600 line-clamp-2">Review link recovery request</p>
+                    <p className="text-[10px] text-slate-600 line-clamp-2">Review link recovery request</p>
                   </div>
                 </div>
 
                 {/* Bottom Actions Compose */}
-                <div className="p-4 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
+                <div className="p-3 bg-white border-t border-slate-200 grid grid-cols-2 gap-2">
                   <button 
                     onClick={() => { setComposerType("email"); setIsComposerOpen(true); }}
-                    className="flex w-full justify-center items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold text-blue-700 shadow-sm transition-colors cursor-pointer"
+                    className="flex w-full justify-center items-center gap-1 px-2 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-[10px] font-bold text-blue-700 shadow-sm transition-colors cursor-pointer"
                   >
-                    <Mail className="w-3.5 h-3.5" /> Email
+                    <Mail className="w-3 h-3" /> Email
                   </button>
                   <button 
                     onClick={() => { setComposerType("ticket"); setIsComposerOpen(true); }}
-                    className="flex w-full justify-center items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold text-amber-700 shadow-sm transition-colors cursor-pointer"
+                    className="flex w-full justify-center items-center gap-1 px-2 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg text-[10px] font-bold text-amber-700 shadow-sm transition-colors cursor-pointer"
                   >
-                    <Ticket className="w-3.5 h-3.5" /> Ticket
+                    <Ticket className="w-3 h-3" /> Ticket
                   </button>
                 </div>
               </div>
 
               {/* Main Panel (Thread View) */}
               <div className="hidden md:flex flex-1 bg-white flex-col h-full relative">
-                 <button onClick={() => setIsChatWidgetOpen(false)} className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 shadow-sm border border-slate-200"><X className="w-5 h-5"/></button>
+                 <button onClick={() => setIsChatWidgetOpen(false)} className="absolute top-3 right-3 z-10 text-slate-400 hover:text-slate-600 bg-white rounded-full p-1 shadow-sm border border-slate-200"><X className="w-4 h-4"/></button>
                 
                 {/* Thread Header */}
-                <div className="p-6 border-b border-slate-200 bg-slate-50 flex items-start justify-between shrink-0">
-                  <div className="pr-12">
-                    <h2 className="text-lg font-bold text-slate-800 leading-snug">
+                <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-start justify-between shrink-0">
+                  <div className="pr-10">
+                    <h2 className="text-base font-bold text-slate-800 leading-snug">
                        {activeChatContext === "coordinator" ? "Coordinator Chat" : "AI Event Assistant"}
                     </h2>
-                    <div className="flex items-center gap-3 mt-1.5">
+                    <div className="flex items-center gap-2 mt-1">
                        {activeChatContext === "coordinator" ? (
                          <>
-                           <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center border border-indigo-200">LS</div>
-                           <span className="text-xs text-slate-500"><strong>Larissa Szynski</strong> - Online</span>
+                           <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[8px] flex items-center justify-center border border-indigo-200">LS</div>
+                           <span className="text-[10px] text-slate-500"><strong>Larissa Szynski</strong> - Online</span>
                          </>
                        ) : (
                          <>
-                           <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center border border-blue-200"><Bot className="w-3.5 h-3.5" /></div>
-                           <span className="text-xs text-slate-500"><strong>AI Assistant</strong> - Always Online</span>
+                           <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[8px] flex items-center justify-center border border-blue-200"><Bot className="w-2.5 h-2.5" /></div>
+                           <span className="text-[10px] text-slate-500"><strong>AI Assistant</strong> - Always Online</span>
                          </>
                        )}
                     </div>
@@ -1732,7 +1732,7 @@ export default function App() {
                 </div>
 
                 {/* Thread Content */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+                <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/50">
                    {activeChatContext === "coordinator" ? (
                       <>
                          {chatMessages.map((msg) => {
@@ -1742,11 +1742,11 @@ export default function App() {
                                key={msg.id}
                                className={`flex flex-col gap-1 max-w-[85%] ${isLarissa ? "self-start" : "self-end items-end text-right ml-auto"}`}
                              >
-                               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                               <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono">
                                  <span className="font-semibold text-slate-600">{msg.sender}</span>
                                  <span>{msg.timestamp}</span>
                                </div>
-                               <div className={`p-4 rounded-2xl text-sm leading-relaxed border ${
+                               <div className={`p-3 rounded-2xl text-xs leading-relaxed border ${
                                  isLarissa 
                                    ? "bg-white border-slate-200 text-slate-800 rounded-tl-none shadow-sm" 
                                    : "bg-indigo-600 border-indigo-600 text-white rounded-tr-none text-left shadow-sm"
@@ -1757,7 +1757,7 @@ export default function App() {
                            );
                          })}
                          {isChatTyping && (
-                           <div className="text-slate-400 italic text-xs animate-pulse flex items-center gap-2 py-2">
+                           <div className="text-slate-400 italic text-[10px] animate-pulse flex items-center gap-1.5 py-1">
                              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
                              <span>Larissa is typing...</span>
                            </div>
@@ -1772,11 +1772,11 @@ export default function App() {
                                key={i}
                                className={`flex flex-col gap-1 max-w-[85%] ${isAi ? "self-start" : "self-end items-end text-right ml-auto"}`}
                              >
-                               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                               <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono">
                                  <span className="font-semibold text-slate-600">{isAi ? "AI Assistant" : booking.contactName}</span>
                                  <span>Just now</span>
                                </div>
-                               <div className={`p-4 rounded-2xl text-sm leading-relaxed border ${
+                               <div className={`p-3 rounded-2xl text-xs leading-relaxed border ${
                                  isAi 
                                    ? "bg-white border-slate-200 text-slate-800 rounded-tl-none shadow-sm" 
                                    : "bg-blue-600 border-blue-600 text-white rounded-tr-none text-left shadow-sm"
@@ -1787,7 +1787,7 @@ export default function App() {
                            );
                          })}
                          {isChatTyping && (
-                           <div className="text-slate-400 italic text-xs animate-pulse flex items-center gap-2 py-2">
+                           <div className="text-slate-400 italic text-[10px] animate-pulse flex items-center gap-1.5 py-1">
                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
                              <span>AI is thinking...</span>
                            </div>
@@ -1797,19 +1797,19 @@ export default function App() {
                 </div>
                 
                 {/* Chat Input Inline */}
-                <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+                <div className="p-2 border-t border-slate-200 bg-white shrink-0">
                   <form onSubmit={handleSendChatMessage} className="flex gap-2 relative">
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder={activeChatContext === "coordinator" ? "Reply to Larissa in portal..." : "Ask AI planner..."}
-                      className={`flex-1 bg-slate-50 border border-slate-200 py-3 pl-4 pr-12 text-sm rounded-xl focus:outline-none focus:bg-white transition-colors ${activeChatContext === "coordinator" ? "focus:border-indigo-500" : "focus:border-blue-500"}`}
+                      className={`flex-1 bg-slate-50 border border-slate-200 py-2 pl-3 pr-10 text-xs rounded-xl focus:outline-none focus:bg-white transition-colors ${activeChatContext === "coordinator" ? "focus:border-indigo-500" : "focus:border-blue-500"}`}
                     />
                     <button
                       type="submit"
                       disabled={!chatInput.trim() || isChatTyping}
-                      className={`absolute right-2 top-2 w-8 h-8 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg flex items-center justify-center transition-colors shadow-sm shrink-0 ${activeChatContext === "coordinator" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                      className={`absolute right-1 top-1 w-7 h-7 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg flex items-center justify-center transition-colors shadow-sm shrink-0 ${activeChatContext === "coordinator" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-blue-600 hover:bg-blue-700"}`}
                     >
                       <Send className="w-3.5 h-3.5 ml-0.5" />
                     </button>
