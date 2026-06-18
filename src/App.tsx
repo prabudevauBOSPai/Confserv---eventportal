@@ -57,12 +57,14 @@ import {
 } from "./data";
 
 import BEOReport from "./components/BEOReport";
+import InlineBEOReport from "./components/InlineBEOReport";
 import ExcelExtractorMock from "./components/ExcelExtractorMock";
 
 export default function App() {
   // Navigation & Screen Views
   // "landing" | "workspace" | "locked"
   const [currentView, setCurrentView] = useState<"landing" | "workspace" | "locked" | "communications">("landing");
+  const [workspaceViewMode, setWorkspaceViewMode] = useState<"edit" | "preview">("edit");
   
   // App core state
   const [booking, setBooking] = useState<Booking>(INITIAL_BOOKING);
@@ -89,6 +91,7 @@ export default function App() {
   const [isScheduleCollapsed, setIsScheduleCollapsed] = useState<boolean>(false);
   
   // Chat input
+  const [isWorkspaceEditing, setIsWorkspaceEditing] = useState<boolean>(true);
   const [chatInput, setChatInput] = useState<string>("");
   const [isChatTyping, setIsChatTyping] = useState<boolean>(false);
   const [isChatWidgetOpen, setIsChatWidgetOpen] = useState<boolean>(false);
@@ -740,8 +743,8 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                 
                 {/* ==================== COLUMN 1: INTERACTIVE EVENT SELECTOR (LEFT) ==================== */}
-                <div className="md:col-span-4 lg:col-span-3 space-y-4">
-                  <div className="bg-white rounded-xl border border-stone-200 bardo-shadow-lg overflow-hidden flex flex-col h-[700px]" id="event-directory-sidebar">
+                <div className="md:col-span-4 lg:col-span-3 h-[750px]">
+                  <div className="bg-white rounded-xl border border-stone-200 bardo-shadow-lg overflow-hidden flex flex-col h-full" id="event-directory-sidebar">
                     <div className="p-4.5 bg-stone-50 border-b border-stone-150">
                       <h3 className="font-serif text-sm font-bold text-stone-900 uppercase tracking-widest">Select Event</h3>
                       <p className="text-[11px] text-stone-500 font-mono mt-0.5">
@@ -851,38 +854,63 @@ export default function App() {
                 </div>
 
                 {/* ==================== COLUMN 2: ACTIVE SPECIFICATIONS WORKSPACE (CENTER) ==================== */}
-                <div className="md:col-span-8 lg:col-span-9 space-y-6">
+                <div className="md:col-span-8 lg:col-span-9 h-[750px]">
                   
-                  {/* Requirements Workspace Panel (The Itemizer) */}
-                  <div className="bg-white rounded-xl border border-stone-200 shadow-md overflow-hidden" id="requirements-workspace">
-                    <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between flex-wrap gap-4 border-b border-slate-800">
+                  <div className="bg-white rounded-xl border border-stone-200 shadow-md overflow-hidden h-full flex flex-col" id="requirements-workspace">
+                    <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between flex-wrap gap-4 border-b border-slate-800 shrink-0">
                       <div className="space-y-0.5">
-                        <span className="text-[9px] text-blue-400 uppercase tracking-widest font-mono font-bold block">Specifying Requirements For:</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[9px] text-blue-400 uppercase tracking-widest font-mono font-bold block">Specifying Requirements For:</span>
+                          <div className="flex bg-slate-800 p-0.5 rounded border border-slate-700">
+                             <button onClick={() => setWorkspaceViewMode("edit")} className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider transition-colors ${workspaceViewMode === 'edit' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}>Edit</button>
+                             <button onClick={() => setWorkspaceViewMode("preview")} className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider flex items-center transition-colors ${workspaceViewMode === 'preview' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}><FileText className="w-2.5 h-2.5 mr-1" /> BEO</button>
+                          </div>
+                        </div>
                         <h3 className="font-serif text-base font-semibold tracking-wide" id="active-event-specification-title">
                           {activeEvent.name}
                         </h3>
                         <p className="text-[11px] text-stone-400">Venue: {activeEvent.room} &nbsp;&bull;&nbsp; Setup: {activeEvent.setupStyle}</p>
                       </div>
                       
-                      {/* Active attendance interactive input */}
-                      <div className="flex items-center gap-2 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-850">
-                        <label className="text-[10px] text-stone-300 uppercase font-mono tracking-tight shrink-0">Attendance Gtd:</label>
-                        <input
-                          type="number"
-                          value={activeEvent.guaranteedAttendance}
-                          disabled={cutoffLocked}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0;
-                            setEvents(prev => prev.map(evt => evt.id === activeEvent.id ? { ...evt, guaranteedAttendance: val } : evt));
-                          }}
-                          className="w-14 bg-stone-900 text-stone-100 border border-stone-800 py-0.5 px-1 text-xs font-mono font-bold text-center focus:border-amber-400 focus:outline-none"
-                          id="gtd-attendance-input"
-                        />
+                      {workspaceViewMode === "edit" && (
+                        <div className="flex items-center gap-4">
+                          {/* Read-Only / Edit Toggle Switch */}
+                          <div className="flex items-center gap-2 bg-stone-900 border border-stone-800 px-3 py-1.5 rounded-lg shrink-0">
+                            <span className={`text-[10px] uppercase font-mono tracking-tight ${!isWorkspaceEditing ? 'text-amber-400 font-bold' : 'text-stone-400'}`}>Read-Only</span>
+                            <button
+                              onClick={() => setIsWorkspaceEditing(!isWorkspaceEditing)}
+                              disabled={cutoffLocked}
+                              className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer shrink-0 ${cutoffLocked ? 'bg-stone-700 opacity-50' : (isWorkspaceEditing ? 'bg-blue-600' : 'bg-stone-600')}`}
+                              id="workspace-edit-toggle"
+                            >
+                              <div className={`w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${isWorkspaceEditing ? 'translate-x-4' : 'translate-x-0'}`} />
+                            </button>
+                            <span className={`text-[10px] uppercase font-mono tracking-tight ${isWorkspaceEditing ? 'text-blue-400 font-bold' : 'text-stone-400'}`}>Edit</span>
+                          </div>
+
+                          {/* Active attendance interactive input */}
+                          <div className="flex items-center gap-2 bg-stone-950 px-3 py-1.5 rounded-lg border border-stone-850 shrink-0">
+                            <label className="text-[10px] text-stone-300 uppercase font-mono tracking-tight shrink-0">Attendance Gtd:</label>
+                            <input
+                              type="number"
+                              value={activeEvent.guaranteedAttendance}
+                              disabled={cutoffLocked || !isWorkspaceEditing}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 0;
+                              setEvents(prev => prev.map(evt => evt.id === activeEvent.id ? { ...evt, guaranteedAttendance: val } : evt));
+                            }}
+                            className="w-14 bg-stone-900 text-stone-100 border border-stone-800 py-0.5 px-1 text-xs font-mono font-bold text-center focus:border-amber-400 focus:outline-none"
+                            id="gtd-attendance-input"
+                          />
+                        </div>
                       </div>
+                      )}
                     </div>
 
-                    {/* Step-by-step Requirements Category tabs: Food -> Beverage -> Setup -> AV -> Other -> Audits */}
-                    <div className="flex border-b border-stone-200 bg-stone-50 overflow-x-auto whitespace-nowrap scrollbar-thin">
+                  {workspaceViewMode === "edit" ? (
+                    <div className="flex-1 overflow-y-auto flex flex-col">
+                      {/* Step-by-step Requirements Category tabs: Food -> Beverage -> Setup -> AV -> Other -> Audits */}
+                      <div className="flex border-b border-stone-200 bg-stone-50 overflow-x-auto whitespace-nowrap scrollbar-thin shrink-0">
                       {(["food", "beverage", "setup", "av", "other", "audits"] as const).map((tab) => {
                         const tabCount = tab === "audits" ? auditLogs.filter(l => l.eventName === activeEvent.name).length : activeEvent.requirements[tab as "food" | "beverage" | "setup" | "av" | "other"].length;
                         return (
@@ -956,7 +984,7 @@ export default function App() {
                                 <input
                                   type="number"
                                   value={item.quantity}
-                                  disabled={cutoffLocked}
+                                  disabled={cutoffLocked || !isWorkspaceEditing}
                                   onChange={(e) => {
                                     const val = e.target.value === "" ? "" : parseInt(e.target.value) || 0;
                                     handleUpdateItemValue(activeWorkspaceTab, item.id, "quantity", val);
@@ -974,7 +1002,7 @@ export default function App() {
                               </div>
 
                               {/* Remove item button */}
-                              {!cutoffLocked ? (
+                              {!cutoffLocked && isWorkspaceEditing ? (
                                 <button
                                   onClick={() => handleRemoveItem(activeWorkspaceTab, item.id, item.name)}
                                   className="p-1.5 text-stone-400 hover:text-red-700/80 hover:bg-red-50 rounded transition-all cursor-pointer"
@@ -1026,7 +1054,7 @@ export default function App() {
                       )}
 
                       {/* Add Item Panel: Catalog Quick Search & Custom Manual Form */}
-                      {!cutoffLocked && activeWorkspaceTab !== "audits" ? (
+                      {(!cutoffLocked && isWorkspaceEditing) && activeWorkspaceTab !== "audits" ? (
                         <div className="bg-stone-100/50 p-4.5 rounded-lg border border-stone-200 space-y-4" id="add-item-subpanel">
                           <div className="flex items-center gap-2.5">
                             <Sparkles className="w-4.5 h-4.5 text-amber-800" />
@@ -1167,15 +1195,26 @@ export default function App() {
                             </form>
                           </div>
                         </div>
-                      ) : activeWorkspaceTab !== "audits" ? (
+                      ) : activeWorkspaceTab !== "audits" && cutoffLocked ? (
                         <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium text-xs italic text-center">
                           <Lock className="w-3.5 h-3.5 inline mr-1.5 text-red-600" />
                           Specs locked due to cutoff deadline. Proposed edits require speaking to CSM coordinator Larissa.
                         </div>
+                      ) : activeWorkspaceTab !== "audits" && !isWorkspaceEditing ? (
+                        <div className="p-4 bg-stone-50 border border-stone-200 rounded-lg text-stone-500 font-medium text-xs italic text-center" id="read-only-banner">
+                          <Eye className="w-3.5 h-3.5 inline mr-1.5 text-stone-400" />
+                          Currently in Read-Only Mode. Enable 'Edit' in the header to modify specifications.
+                        </div>
                       ) : null}
                     </div>
                   </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto bg-stone-100 p-2 sm:p-4">
+                      <InlineBEOReport booking={booking} activeEvent={activeEvent} />
+                    </div>
+                  )}
 
+                  </div>
                 </div>
 
               </div>
@@ -1575,7 +1614,7 @@ export default function App() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-[90vw] md:w-[800px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[80vh] md:h-[600px]"
+            className="fixed bottom-6 right-6 w-[90vw] md:w-[800px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[80vh] md:h-[600px] resize min-w-[320px] min-h-[400px] max-w-[95vw] max-h-[90vh]"
             id="communications-popup"
           >
               {/* Sidebar (Message List) */}
