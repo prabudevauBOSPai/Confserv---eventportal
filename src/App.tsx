@@ -59,6 +59,7 @@ import {
 import BEOReport from "./components/BEOReport";
 import InlineBEOReport from "./components/InlineBEOReport";
 import ExcelExtractorMock from "./components/ExcelExtractorMock";
+import SourceDocumentPanel from "./components/SourceDocumentPanel";
 
 export default function App() {
   // Navigation & Screen Views
@@ -81,6 +82,12 @@ export default function App() {
   const [isBEOOpen, setIsBEOOpen] = useState<boolean>(false);
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   
+  // Extraction mapping state
+  const [extractedAgendaEvents, setExtractedAgendaEvents] = useState<BardoEvent[] | null>(null);
+  const [extractedSourceName, setExtractedSourceName] = useState<string>("");
+  const [isAdvancedView, setIsAdvancedView] = useState<boolean>(false);
+  const [reviewedItemIds, setReviewedItemIds] = useState<Set<string>>(new Set());
+  
   // Catalog search state
   const [catalogSearch, setCatalogSearch] = useState<string>("");
   const [catalogCategory, setCatalogCategory] = useState<"all" | "food" | "beverage" | "setup" | "av">("all");
@@ -96,6 +103,32 @@ export default function App() {
   const [isChatTyping, setIsChatTyping] = useState<boolean>(false);
   const [isChatWidgetOpen, setIsChatWidgetOpen] = useState<boolean>(false);
   const [activeChatContext, setActiveChatContext] = useState<"coordinator" | "ai">("coordinator");
+  const [chatWidgetWidth, setChatWidgetWidth] = useState<number>(650);
+  const [chatWidgetHeight, setChatWidgetHeight] = useState<number>(500);
+  const [isResizingChat, setIsResizingChat] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isResizingChat) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX - 24;
+      const newHeight = window.innerHeight - e.clientY - 24;
+      
+      if (newWidth >= 320 && newWidth <= window.innerWidth * 0.95) {
+        setChatWidgetWidth(newWidth);
+      }
+      if (newHeight >= 400 && newHeight <= window.innerHeight * 0.95) {
+        setChatWidgetHeight(newHeight);
+      }
+    };
+    const handleMouseUp = () => setIsResizingChat(false);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizingChat]);
+
   const [aiChatMessages, setAiChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
     {role: "ai", text: "Hi! I am your AI assistant for Hotel Bardo Savannah. I can answer questions about menus, policies, layouts, and past similar events."}
   ]);
@@ -489,27 +522,29 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen text-stone-900 flex flex-col font-sans" id="confer-app-root">
+    <div className="min-h-screen text-stone-900 flex flex-col font-sans bg-gradient-to-br from-blue-50/80 via-white to-purple-50/50" id="confer-app-root">
       
       {/* Main Header Block */}
-      <header className="bg-white border-b border-stone-200/80 sticky top-0 z-40 shadow-sm px-6 py-4 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-6">
+      <header className="bg-white sticky top-0 z-40 shadow-sm px-6 py-3 flex items-center justify-between print:hidden border-b border-stone-200">
+        <div className="flex items-center gap-4 lg:gap-6 flex-1">
           {/* -Logo Brand Title */}
-          <div className="cursor-pointer select-none group" onClick={() => setCurrentView("landing")}>
+          <div className="cursor-pointer select-none group shrink-0" onClick={() => setCurrentView("landing")}>
             <span className="font-sans text-xl font-black bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent block tracking-wide" id="header-brand-title">
-              ConfServ
+              Event Portal
             </span>
             <span className="text-[10px] tracking-widest text-stone-500 font-mono font-medium block uppercase group-hover:text-blue-500 transition-colors">
               Conference Services
             </span>
           </div>
-          <div className="h-6 w-px bg-stone-200" />
+          
+          <div className="h-8 w-px bg-stone-200 hidden md:block" />
+          
           {/* Main User Navigation Links */}
-          <nav className="flex items-center gap-2">
+          <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-full border border-stone-200 shadow-inner shrink-0">
             <button
               onClick={() => { setCurrentView("landing"); }}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                currentView === "landing" ? "bg-blue-50 text-blue-700" : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                currentView === "landing" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
               id="nav-welcome-btn"
             >
@@ -517,8 +552,8 @@ export default function App() {
             </button>
             <button
               onClick={() => { setCurrentView("workspace"); }}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                currentView === "workspace" ? "bg-blue-50 text-blue-700" : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                currentView === "workspace" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
               id="nav-workspace-btn"
             >
@@ -526,55 +561,99 @@ export default function App() {
             </button>
             <button
               onClick={() => { setCurrentView("locked"); }}
-              className={`px-4 py-2 text-xs font-bold rounded-full transition-all cursor-pointer ${
-                currentView === "locked" ? "bg-blue-50 text-blue-700" : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                currentView === "locked" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
               id="nav-locked-btn"
             >
               Final Package
             </button>
           </nav>
+          
+          {/* Advanced Agenda Toggle */}
+          {currentView === "workspace" && extractedSourceName && (
+            <div className="flex items-center gap-4 lg:gap-6 ml-2 lg:ml-4 border-l border-stone-200 pl-4 lg:pl-6 h-full">
+              <div className="flex items-center gap-2">
+                <div className="hidden lg:flex flex-col justify-center">
+                  <span className="text-[8px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Reviewing Source</span>
+                  <span className="text-[11px] font-medium text-stone-700 truncate max-w-[120px]" title={extractedSourceName}>{extractedSourceName}</span>
+                </div>
+                
+                <div className="flex items-center gap-1 px-1 py-1 bg-stone-100 rounded-full border border-stone-200 shadow-inner ml-2">
+                  <button 
+                    onClick={() => setIsAdvancedView(false)} 
+                    className={`px-3 py-1.5 text-xs rounded-full font-bold transition-all cursor-pointer ${!isAdvancedView ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200/50': 'text-stone-500 hover:text-stone-700'}`}
+                  >
+                    Standard
+                  </button>
+                  <button 
+                    onClick={() => setIsAdvancedView(true)} 
+                    className={`px-3 py-1.5 text-xs rounded-full font-bold transition-all cursor-pointer ${isAdvancedView ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200/50': 'text-stone-500 hover:text-stone-700'}`}
+                  >
+                    Advanced
+                  </button>
+                </div>
+              </div>
+
+              {/* Review Progress Indicator */}
+              {(() => {
+                const totalItemsCount = events.reduce((acc, evt) => acc + Object.values(evt.requirements).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0), 0);
+                const progressPercent = totalItemsCount === 0 ? 100 : Math.round((reviewedItemIds.size / totalItemsCount) * 100);
+                return (
+                  <div className="hidden xl:flex flex-col w-40 justify-center">
+                    <div className="flex items-center justify-between text-[9px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
+                      <span>Review Progress</span>
+                      <span className={reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? "text-emerald-600" : "text-amber-600"}>{reviewedItemIds.size} / {totalItemsCount} Items</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-stone-200 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-500 ${reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'}`} style={{ width: `${progressPercent}%` }} />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
 
         {/* Global booking status info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 lg:gap-4 shrink-0 pr-1">
           {/* Warning Banner moved to navbar */}
           {currentView !== "locked" && !cutoffLocked && (
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
-              <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-              <span className="text-[10px] font-medium text-amber-800">
-                F&B Cutoff in <span className="font-bold underline">5 days</span>.
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full shadow-sm">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="text-[11px] font-medium text-amber-800">
+                F&B Cutoff in <span className="font-bold underline">5 days</span>
               </span>
             </div>
           )}
 
           {currentView !== "locked" && cutoffLocked && (
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full">
-              <Lock className="w-3 h-3 text-red-600 shrink-0" />
-              <span className="text-[10px] font-medium text-red-800">
-                Final Selection Locked.
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full shadow-sm">
+              <Lock className="w-3.5 h-3.5 text-red-600 shrink-0" />
+              <span className="text-[11px] font-medium text-red-800">
+                Selection Locked
               </span>
             </div>
           )}
 
           <div className="text-right flex items-center">
-            <div className={`flex items-center justify-center p-1.5 rounded-full border ${
+            <div className={`flex items-center justify-center p-1.5 rounded-full border shadow-sm ${
               currentView === "locked" || cutoffLocked
                 ? "bg-red-50 border-red-200"
                 : "bg-emerald-50 border-emerald-200"
             }`} title={currentView === "locked" ? "Locked" : cutoffLocked ? "Past Cutoff" : "Open Draft"}>
-              <span className={`w-2 h-2 rounded-full ${currentView === "locked" || cutoffLocked ? "bg-red-600" : "bg-emerald-500 animate-pulse"}`} />
+              <span className={`w-2.5 h-2.5 rounded-full ${currentView === "locked" || cutoffLocked ? "bg-red-600" : "bg-emerald-500 animate-pulse"}`} />
             </div>
           </div>
 
-          <div className="h-6 w-px bg-stone-200 hidden sm:block" />
+          <div className="h-7 w-px bg-stone-200 hidden sm:block" />
 
           {/* Current selected event counter indicator */}
-          <div className="bg-stone-50 border border-stone-200 px-2 py-1 rounded-md flex items-center gap-1.5">
-            <span className="text-[10px] font-mono font-bold bg-blue-600 text-white rounded w-5 h-5 flex items-center justify-center shadow-sm">
+          <div className="bg-stone-50 border border-stone-200 px-2 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+            <span className="text-[11px] font-mono font-bold bg-blue-600 text-white rounded w-6 h-6 flex items-center justify-center shadow-inner">
               {events.length}
             </span>
-            <span className="text-[10px] font-semibold text-stone-600 hidden md:inline uppercase tracking-widest pt-0.5 pr-1">Events</span>
+            <span className="text-[10px] font-bold text-stone-600 hidden md:inline uppercase tracking-widest pt-0.5 pr-1">Events</span>
           </div>
         </div>
       </header>
@@ -596,135 +675,155 @@ export default function App() {
               id="landing-view-viewport"
             >
               {/* Single Section Landing View */}
-              <div className="bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col lg:flex-row min-h-[calc(100vh-180px)]" id="single-landing-section">
-                
-                {/* Left Side: Welcome, Stats & Actions */}
-                <div className="flex-1 lg:w-[65%] xl:w-[70%] bg-gradient-to-br from-blue-50/80 via-white to-purple-50/50 p-6 md:p-8 lg:p-10 flex flex-col relative overflow-hidden justify-between">
-                  {/* Decorative Elements */}
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
-                  <div className="absolute bottom-0 left-0 w-80 h-80 bg-fuchsia-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
-
-                  <div className="relative z-10 space-y-6">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-white text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm border border-slate-100">
-                      Welcome back, {booking.contactName}
-                    </span>
-                    
-                    <h2 className="font-sans text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-800">
-                      <span className="text-blue-600 inline-block mt-2">{booking.title}</span>
-                    </h2>
-                    
-                    <p className="text-lg text-slate-500 max-w-2xl font-medium leading-relaxed">
-                      Your personalized workspace is pre-configured and ready. Review your schedules, add catering, and finalize your room layouts across all scheduled events.
-                    </p>
-                  </div>
-
-                  {/* Compact Stats Grid */}
-                  <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 mb-10">
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Guests</span>
-                      <span className="text-3xl font-extrabold text-blue-500">{booking.expectedAttendanceGlobal}</span>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Events</span>
-                      <span className="text-3xl font-extrabold text-fuchsia-500">{events.length}</span>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Menu Due</span>
-                      <span className="text-xl font-extrabold text-emerald-500 mt-1">{formatFriendlyDate(booking.foodCutoffDate)}</span>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Final Headcount</span>
-                      <span className="text-xl font-extrabold text-amber-500 mt-1">{formatFriendlyDate(booking.finalGuaranteeDate)}</span>
-                    </div>
-                  </div>
-
-                  {/* Call to Actions */}
-                  <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 mt-auto border-t border-slate-200/60 pt-8">
-                    <button
-                      onClick={() => { setCurrentView("workspace"); }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base px-10 py-5 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+              <div className="relative min-h-[calc(100vh-180px)] w-full" id="single-landing-section">
+                <AnimatePresence mode="wait">
+                  {isUploadOpen ? (
+                    <motion.div
+                      key="uploader"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="absolute inset-0 flex-1 w-full flex flex-col overflow-y-auto px-6 md:px-8" 
+                      id="ai-uploader-section"
                     >
-                      Enter Interactive Workspace
-                      <Sparkles className="w-5 h-5 opacity-90" />
-                    </button>
-                    <button
-                      onClick={() => setIsUploadOpen(true)}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-slate-200 hover:border-slate-300 text-slate-700 bg-white font-bold text-base px-8 py-5 rounded-2xl transition-all hover:bg-slate-50 shadow-sm cursor-pointer"
+                      <div className="w-full h-full flex-1 flex flex-col items-stretch">
+                        <ExcelExtractorMock
+                          onEventsExtracted={(newEvents, sourceName) => {
+                            setExtractedAgendaEvents(newEvents);
+                            setExtractedSourceName(sourceName);
+                            setIsUploadOpen(false);
+                            
+                            // Proceed directly to the Centralized Dashboard
+                            setEvents(newEvents);
+                            setOriginalEventsSnapshot(JSON.parse(JSON.stringify(INITIAL_EVENTS)));
+                            setCurrentView("workspace");
+                          }}
+                          onCancel={() => setIsUploadOpen(false)}
+                        />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="landing-content"
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="flex flex-col lg:flex-row w-full h-full gap-12 lg:gap-20"
                     >
-                      <UploadCloud className="w-5 h-5 text-slate-600" />
-                      Upload Agenda
-                    </button>
-                  </div>
-                  
-                  {isUploadOpen && (
-                    <div className="absolute bottom-28 left-8 right-8 z-20 animate-fadeIn drop-shadow-2xl" id="ai-uploader-section">
-                      <ExcelExtractorMock
-                        onEventsExtracted={(newEvents) => {
-                          setEvents(newEvents);
-                          setOriginalEventsSnapshot(JSON.parse(JSON.stringify(INITIAL_EVENTS)));
-                          setCurrentView("workspace");
-                          setIsUploadOpen(false);
-                        }}
-                        onCancel={() => setIsUploadOpen(false)}
-                      />
+                      {/* Left Side: Welcome, Stats & Actions */}
+                      <div className="flex-1 w-full lg:w-[65%] xl:w-[70%] flex flex-col justify-between">
+                      <div className="relative z-10 space-y-6">
+                        <span className="inline-block px-4 py-1.5 rounded-full bg-white text-xs font-bold uppercase tracking-widest text-slate-500 shadow-sm border border-slate-100">
+                          Welcome back, {booking.contactName}
+                        </span>
+                        
+                        <h2 className="font-sans text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none text-slate-800">
+                          <span className="text-blue-600 inline-block mt-2">{booking.title}</span>
+                        </h2>
+                        
+                        <p className="text-lg text-slate-500 max-w-2xl font-medium leading-relaxed">
+                          Your personalized workspace is pre-configured and ready. Review your schedules, add catering, and finalize your room layouts across all scheduled events.
+                        </p>
+                      </div>
+
+                      {/* Compact Stats Grid */}
+                      <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 mb-10">
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Guests</span>
+                          <span className="text-3xl font-extrabold text-blue-500">{booking.expectedAttendanceGlobal}</span>
+                        </div>
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Events</span>
+                          <span className="text-3xl font-extrabold text-fuchsia-500">{events.length}</span>
+                        </div>
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Menu Due</span>
+                          <span className="text-xl font-extrabold text-emerald-500 mt-1">{formatFriendlyDate(booking.foodCutoffDate)}</span>
+                        </div>
+                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col items-start hover:shadow-md transition-shadow">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Final Headcount</span>
+                          <span className="text-xl font-extrabold text-amber-500 mt-1">{formatFriendlyDate(booking.finalGuaranteeDate)}</span>
+                        </div>
+                      </div>
+
+                      {/* Call to Actions */}
+                      <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 mt-auto border-t border-slate-200/60 pt-8">
+                        <button
+                          onClick={() => { setCurrentView("workspace"); }}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-base px-10 py-5 rounded-2xl transition-all shadow-md hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                        >
+                          Enter Interactive Workspace
+                          <Sparkles className="w-5 h-5 opacity-90" />
+                        </button>
+                        <button
+                          onClick={() => setIsUploadOpen(true)}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 border-2 border-slate-200 hover:border-slate-300 text-slate-700 bg-white font-bold text-base px-8 py-5 rounded-2xl transition-all hover:bg-slate-50 shadow-sm cursor-pointer"
+                        >
+                          <UploadCloud className="w-5 h-5 text-slate-600" />
+                          Upload Agenda
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Right Side: Coordinator & Info */}
+                    <div className="w-full lg:w-[35%] xl:w-[30%] flex flex-col justify-between">
+                      {/* Coordinator Profile */}
+                      <div className="space-y-6">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-2">Your Coordinator</h4>
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-blue-200 flex items-center justify-center shrink-0 relative">
+                            <span className="font-sans text-lg font-black text-blue-600 uppercase">LS</span>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-stone-900">Larissa Szynski</h4>
+                            <p className="text-xs text-stone-500 font-medium">{booking.bookedBy}</p>
+                          </div>
+                        </div>
+                        <div className="relative mt-2">
+                          <div className="absolute top-0 left-4 -mt-2 w-3 h-3 bg-white rotate-45 border-t border-l border-slate-200"></div>
+                          <p className="relative text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 p-4 rounded-xl shadow-sm italic">
+                            "I'm here to ensure your event runs flawlessly. Once you enter the workspace, feel free to use the floating chat to message me directly!"
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Planning Roadmap */}
+                      <div className="space-y-5 mt-10 lg:mt-auto">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-2 mb-4">Planning Roadmap</h4>
+                        <div className="flex gap-4 items-start">
+                          <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">1</span>
+                          <div className="space-y-1">
+                            <span className="text-sm font-bold text-stone-800 block">Verify Timelines</span>
+                            <p className="text-xs text-stone-500 leading-relaxed">Validate location and expected attendances.</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-4 items-start">
+                          <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">2</span>
+                          <div className="space-y-1">
+                            <span className="text-sm font-bold text-stone-800 block">Select F&B + AV</span>
+                            <p className="text-xs text-stone-500 leading-relaxed">Pick items from the property catalog.</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-4 items-start">
+                          <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">3</span>
+                          <div className="space-y-1">
+                            <span className="text-sm font-bold text-stone-800 block">Lock Submission</span>
+                            <p className="text-xs text-stone-500 leading-relaxed">Sign off and commit your event setup.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Meta Information */}
+                      <div className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-400 font-medium space-y-1">
+                        <p><span className="font-bold text-slate-500">Account:</span> {booking.account}</p>
+                        <p><span className="font-bold text-slate-500">Property:</span> {booking.propertyName}</p>
+                      </div>
+                    </div>
+                    </motion.div>
                   )}
-                </div>
-
-                {/* Right Side: Coordinator & Info */}
-                <div className="w-full lg:w-[35%] xl:w-[30%] bg-slate-50 border-l border-slate-200 p-6 md:p-8 flex flex-col justify-between">
-                  {/* Coordinator Profile */}
-                  <div className="space-y-6">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-2">Your Coordinator</h4>
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-white shadow-sm border border-blue-200 flex items-center justify-center shrink-0 relative">
-                        <span className="font-sans text-lg font-black text-blue-600 uppercase">LS</span>
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-stone-900">Larissa Szynski</h4>
-                        <p className="text-xs text-stone-500 font-medium">{booking.bookedBy}</p>
-                      </div>
-                    </div>
-                    <div className="relative mt-2">
-                      <div className="absolute top-0 left-4 -mt-2 w-3 h-3 bg-white rotate-45 border-t border-l border-slate-200"></div>
-                      <p className="relative text-sm text-slate-600 leading-relaxed bg-white border border-slate-200 p-4 rounded-xl shadow-sm italic">
-                        "I'm here to ensure your event runs flawlessly. Once you enter the workspace, feel free to use the floating chat to message me directly!"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Planning Roadmap */}
-                  <div className="space-y-5 mt-10 lg:mt-auto">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-2 mb-4">Planning Roadmap</h4>
-                    <div className="flex gap-4 items-start">
-                      <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">1</span>
-                      <div className="space-y-1">
-                        <span className="text-sm font-bold text-stone-800 block">Verify Timelines</span>
-                        <p className="text-xs text-stone-500 leading-relaxed">Validate location and expected attendances.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4 items-start">
-                      <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">2</span>
-                      <div className="space-y-1">
-                        <span className="text-sm font-bold text-stone-800 block">Select F&B + AV</span>
-                        <p className="text-xs text-stone-500 leading-relaxed">Pick items from the property catalog.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4 items-start">
-                      <span className="font-mono text-xs font-black text-blue-700 bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center shrink-0 mt-0.5">3</span>
-                      <div className="space-y-1">
-                        <span className="text-sm font-bold text-stone-800 block">Lock Submission</span>
-                        <p className="text-xs text-stone-500 leading-relaxed">Sign off and commit your event setup.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Meta Information */}
-                  <div className="mt-10 pt-6 border-t border-slate-200 text-xs text-slate-400 font-medium space-y-1">
-                    <p><span className="font-bold text-slate-500">Account:</span> {booking.account}</p>
-                    <p><span className="font-bold text-slate-500">Property:</span> {booking.propertyName}</p>
-                  </div>
-                </div>
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
@@ -739,11 +838,22 @@ export default function App() {
               className=""
               id="workspace-view-viewport"
             >
-              {/* Start Two Column Master-Detail Grid: Left sidebar select (1), center workspace (2) */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className={`flex flex-col md:flex-row gap-4 h-[750px] ${isAdvancedView ? 'overflow-x-auto w-full' : ''}`}>
                 
+                {/* COLUMN 0: SOURCE DOCUMENT */}
+                {isAdvancedView && extractedSourceName && (
+                  <SourceDocumentPanel
+                    sourceName={extractedSourceName}
+                    searchQuery={eventSearchQuery}
+                    setSearchQuery={setEventSearchQuery}
+                    filteredEvents={filteredEvents}
+                    selectedEventId={selectedEventId}
+                    setSelectedEventId={setSelectedEventId}
+                  />
+                )}
+
                 {/* ==================== COLUMN 1: INTERACTIVE EVENT SELECTOR (LEFT) ==================== */}
-                <div className="md:col-span-4 lg:col-span-3 h-[750px]">
+                <div className={`${isAdvancedView ? 'w-[300px] shrink-0' : 'w-full md:w-[30%] lg:w-[25%]'} flex flex-col h-full`}>
                   <div className="bg-white rounded-xl border border-stone-200 bardo-shadow-lg overflow-hidden flex flex-col h-full" id="event-directory-sidebar">
                     <div className="p-4.5 bg-stone-50 border-b border-stone-150">
                       <h3 className="font-serif text-sm font-bold text-stone-900 uppercase tracking-widest">Select Event</h3>
@@ -854,7 +964,7 @@ export default function App() {
                 </div>
 
                 {/* ==================== COLUMN 2: ACTIVE SPECIFICATIONS WORKSPACE (CENTER) ==================== */}
-                <div className="md:col-span-8 lg:col-span-9 h-[750px]">
+                <div className={`${isAdvancedView ? 'w-[700px] shrink-0' : 'w-full md:w-[70%] lg:w-[75%]'} flex flex-col h-full`}>
                   
                   <div className="bg-white rounded-xl border border-stone-200 shadow-md overflow-hidden h-full flex flex-col" id="requirements-workspace">
                     <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between flex-wrap gap-4 border-b border-slate-800 shrink-0">
@@ -1002,21 +1112,41 @@ export default function App() {
                               </div>
 
                               {/* Remove item button */}
-                              {!cutoffLocked && isWorkspaceEditing ? (
-                                <button
-                                  onClick={() => handleRemoveItem(activeWorkspaceTab, item.id, item.name)}
-                                  className="p-1.5 text-stone-400 hover:text-red-700/80 hover:bg-red-50 rounded transition-all cursor-pointer"
-                                  id={`remove-btn-${item.id}`}
-                                  title="Remove item"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              ) : (
-                                <div className="p-1.5 text-stone-300" title="Locked due to cutoff date">
-                                  <Lock className="w-4 h-4" />
-                                </div>
-                              )}
-
+                              <div className="flex flex-col gap-2 items-end">
+                                {!cutoffLocked && isWorkspaceEditing ? (
+                                  <button
+                                    onClick={() => handleRemoveItem(activeWorkspaceTab, item.id, item.name)}
+                                    className="p-1.5 text-stone-400 hover:text-red-700/80 hover:bg-red-50 rounded transition-all cursor-pointer"
+                                    id={`remove-btn-${item.id}`}
+                                    title="Remove item"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <div className="p-1.5 text-stone-300" title="Locked due to cutoff date">
+                                    <Lock className="w-4 h-4" />
+                                  </div>
+                                )}
+                                
+                                {extractedSourceName && (
+                                  <div className="flex items-center gap-1">
+                                    {reviewedItemIds.has(item.id) ? (
+                                      <span className="text-[9px] font-bold text-emerald-600 px-1.5 py-0.5 rounded bg-emerald-50 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                                        <Check className="w-2.5 h-2.5" /> Reviewed
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <button onClick={() => setReviewedItemIds(prev => new Set(prev).add(item.id))} className="text-[9px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors uppercase tracking-wider shrink-0 border border-emerald-200 shadow-sm cursor-pointer">
+                                          Approve
+                                        </button>
+                                        <button onClick={() => { handleRemoveItem(activeWorkspaceTab, item.id, item.name); setReviewedItemIds(prev => new Set(prev).add(item.id)); }} className="text-[9px] font-bold text-stone-500 hover:text-rose-600 px-1.5 py-0.5 rounded hover:bg-rose-50 transition-colors uppercase tracking-wider shrink-0 cursor-pointer">
+                                          Reject
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1614,9 +1744,20 @@ export default function App() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-[80vw] md:w-[650px] bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row overflow-hidden h-[70vh] md:h-[500px] resize min-w-[320px] min-h-[400px] max-w-[95vw] max-h-[90vh]"
+            className="fixed bottom-6 right-6 bg-white border border-slate-200 rounded-3xl shadow-2xl z-50 flex flex-col md:flex-row min-h-[400px] max-h-[90vh]"
+            style={{ width: `${chatWidgetWidth}px`, height: `${chatWidgetHeight}px`, maxWidth: '95vw', minWidth: '320px' }}
             id="communications-popup"
           >
+            {/* Top Left Corner Resize Handle */}
+            <div 
+              className="hidden md:flex absolute -top-2 -left-2 w-6 h-6 bg-slate-200 hover:bg-amber-400 rounded-full cursor-nwse-resize items-center justify-center z-50 shadow-sm border border-slate-300 transition-colors"
+              onMouseDown={() => setIsResizingChat(true)}
+              title="Drag to resize diagonally"
+            >
+              <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+            </div>
+
+            <div className="flex w-full h-full overflow-hidden rounded-3xl">
               {/* Sidebar (Message List) */}
               <div className="w-full md:w-[260px] shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col">
                 <div className="p-3 border-b border-slate-200 bg-white flex justify-between items-center">
@@ -1817,6 +1958,7 @@ export default function App() {
                 </div>
                 
               </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
