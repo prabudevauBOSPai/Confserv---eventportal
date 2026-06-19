@@ -24,10 +24,10 @@ export default function SourceDocumentPanel({
   );
 
   return (
-    <div className={`hidden md:flex flex-col border border-stone-200 rounded-xl overflow-hidden bardo-shadow-lg bg-stone-100 shrink-0 transition-all duration-300 ${sourceView === 'TABLE' ? 'w-[45vw] max-w-[800px]' : 'w-[350px] lg:w-[450px]'} h-full`}>
+    <div className={`hidden md:flex flex-col border border-stone-200 rounded-xl overflow-hidden bardo-shadow-lg bg-stone-100 h-full w-full transition-colors`}>
       <div className="p-2 border-b border-stone-200 bg-stone-50 flex justify-between items-center shrink-0">
         <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest pl-2">Source Document</span>
-        {sourceView === 'TABLE' && (
+        {sourceView === 'TABLE' ? (
           <div className="relative w-48 mr-2 lg:mr-4">
             <input 
               type="text" 
@@ -38,11 +38,13 @@ export default function SourceDocumentPanel({
             />
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1 text-stone-400" />
           </div>
-        )}
-        <div className="flex gap-1 bg-stone-200/50 p-0.5 rounded-md">
+        ) : <div className="flex-1" />}
+        <div className="flex gap-1 bg-stone-200/50 p-0.5 rounded-md hide-scrollbar overflow-x-auto">
            <button onClick={() => setSourceView("PDF")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'PDF' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>PDF</button>
-           <button onClick={() => setSourceView("TABLE")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'TABLE' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>TABLE</button>
-           <button onClick={() => setSourceView("RAW")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'RAW' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>RAW</button>
+           <button onClick={() => setSourceView("TABLE")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'TABLE' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>EXCEL</button>
+           <button onClick={() => setSourceView("RAW")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'RAW' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>TXT</button>
+           <button onClick={() => setSourceView("RAW")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'IMAGE' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>IMG</button>
+           <button onClick={() => setSourceView("PDF")} className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors ${sourceView === 'DOCX' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}>DOCX</button>
         </div>
       </div>
       <div className="flex-1 p-4 overflow-auto">
@@ -81,7 +83,7 @@ export default function SourceDocumentPanel({
               </div>
             </div>
          ) : sourceView === 'PDF' ? (
-           <div className="bg-white shadow-sm border border-stone-200 aspect-[8.5/11] w-full p-6 text-[10px] font-mono text-stone-600 space-y-4">
+           <div className="bg-white shadow-sm border border-stone-200 min-h-[800px] w-full max-w-4xl mx-auto p-6 text-[10px] font-mono text-stone-600 space-y-4">
              <div className="text-center font-bold text-sm mb-8 text-stone-800">AGENDA: LUXE SPRING LAUNCH</div>
              
              <div className="border-b border-stone-200 pb-2 mb-2 font-bold text-stone-800">FRIDAY, MAY 31, 2027</div>

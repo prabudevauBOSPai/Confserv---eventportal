@@ -45,3 +45,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .bardo-shadow-lg {
   box-shadow: 0 10px 30px -5px rgba(44, 37, 30, 0.08), 0 4px 12px -2px rgba(44, 37, 30, 0.04);
 }
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+

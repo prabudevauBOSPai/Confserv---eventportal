@@ -60,6 +60,7 @@ import BEOReport from "./components/BEOReport";
 import InlineBEOReport from "./components/InlineBEOReport";
 import ExcelExtractorMock from "./components/ExcelExtractorMock";
 import SourceDocumentPanel from "./components/SourceDocumentPanel";
+import AdvancedReviewView from "./components/AdvancedReviewView";
 
 export default function App() {
   // Navigation & Screen Views
@@ -130,7 +131,7 @@ export default function App() {
   }, [isResizingChat]);
 
   const [aiChatMessages, setAiChatMessages] = useState<{role: "user" | "ai", text: string}[]>([
-    {role: "ai", text: "Hi! I am your AI assistant for Hotel Bardo Savannah. I can answer questions about menus, policies, layouts, and past similar events."}
+    {role: "ai", text: "Hi! I am your Event Assistant for Hotel Bardo Savannah. I can answer questions about menus, policies, layouts, and past similar events."}
   ]);
 
   // Filter Schedule Panel states (Crucial for handling 20, 80, 100+ events!)
@@ -452,7 +453,7 @@ export default function App() {
 
       if (!originalEvt) {
         // If event was newly extracted or added
-        categoryChanges.push({ category: "All", action: "added", name: "New Event Schedule Portfolio added via AI extraction" });
+        categoryChanges.push({ category: "All", action: "added", name: "New Event Schedule Portfolio added via smart extraction" });
       } else {
         categories.forEach(cat => {
           const origItems = originalEvt.requirements[cat] || [];
@@ -525,28 +526,26 @@ export default function App() {
     <div className="min-h-screen text-stone-900 flex flex-col font-sans bg-gradient-to-br from-blue-50/80 via-white to-purple-50/50" id="confer-app-root">
       
       {/* Main Header Block */}
-      <header className="bg-white sticky top-0 z-40 shadow-sm px-6 py-3 flex items-center justify-between print:hidden border-b border-stone-200">
-        <div className="flex items-center gap-4 lg:gap-6 flex-1">
-          {/* -Logo Brand Title */}
-          <div className="cursor-pointer select-none group shrink-0" onClick={() => setCurrentView("landing")}>
-            <span className="font-sans text-xl font-black bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent block tracking-wide" id="header-brand-title">
+      <header className="bg-white relative z-40 px-6 py-4 flex items-center justify-between print:hidden border-b border-stone-200 shadow-sm shrink-0" style={{ minHeight: "72px" }}>
+        {/* Left Section: Brand & Nav Tabs */}
+        <div className="flex items-center gap-6 xl:gap-8">
+          <div className="cursor-pointer select-none group shrink-0 flex flex-col justify-center" onClick={() => setCurrentView("landing")}>
+            <span className="font-sans text-2xl font-black text-blue-700 tracking-tight leading-none" id="header-brand-title">
               Event Portal
             </span>
-            <span className="text-[10px] tracking-widest text-stone-500 font-mono font-medium block uppercase group-hover:text-blue-500 transition-colors">
+            <span className="text-[10px] tracking-widest text-stone-500 font-medium block uppercase mt-0.5">
               Conference Services
             </span>
           </div>
           
           <div className="h-8 w-px bg-stone-200 hidden md:block" />
           
-          {/* Main User Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 bg-stone-100 p-1 rounded-full border border-stone-200 shadow-inner shrink-0">
+          <nav className="hidden md:flex items-center space-x-1 shrink-0 bg-stone-100 p-1 rounded-full border border-stone-200 shadow-inner">
             <button
               onClick={() => { setCurrentView("landing"); }}
               className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 currentView === "landing" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
-              id="nav-welcome-btn"
             >
               Overview
             </button>
@@ -555,7 +554,6 @@ export default function App() {
               className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 currentView === "workspace" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
-              id="nav-workspace-btn"
             >
               Workspace
             </button>
@@ -564,60 +562,58 @@ export default function App() {
               className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                 currentView === "locked" ? "bg-white text-blue-700 shadow-sm border border-stone-200/50" : "text-stone-500 hover:text-stone-900"
               }`}
-              id="nav-locked-btn"
             >
               Final Package
             </button>
           </nav>
-          
-          {/* Advanced Agenda Toggle */}
-          {currentView === "workspace" && extractedSourceName && (
-            <div className="flex items-center gap-4 lg:gap-6 ml-2 lg:ml-4 border-l border-stone-200 pl-4 lg:pl-6 h-full">
-              <div className="flex items-center gap-2">
-                <div className="hidden lg:flex flex-col justify-center">
-                  <span className="text-[8px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Reviewing Source</span>
-                  <span className="text-[11px] font-medium text-stone-700 truncate max-w-[120px]" title={extractedSourceName}>{extractedSourceName}</span>
-                </div>
-                
-                <div className="flex items-center gap-1 px-1 py-1 bg-stone-100 rounded-full border border-stone-200 shadow-inner ml-2">
-                  <button 
-                    onClick={() => setIsAdvancedView(false)} 
-                    className={`px-3 py-1.5 text-xs rounded-full font-bold transition-all cursor-pointer ${!isAdvancedView ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200/50': 'text-stone-500 hover:text-stone-700'}`}
-                  >
-                    Standard
-                  </button>
-                  <button 
-                    onClick={() => setIsAdvancedView(true)} 
-                    className={`px-3 py-1.5 text-xs rounded-full font-bold transition-all cursor-pointer ${isAdvancedView ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200/50': 'text-stone-500 hover:text-stone-700'}`}
-                  >
-                    Advanced
-                  </button>
-                </div>
-              </div>
+        </div>
 
-              {/* Review Progress Indicator */}
-              {(() => {
-                const totalItemsCount = events.reduce((acc, evt) => acc + Object.values(evt.requirements).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0), 0);
-                const progressPercent = totalItemsCount === 0 ? 100 : Math.round((reviewedItemIds.size / totalItemsCount) * 100);
-                return (
-                  <div className="hidden xl:flex flex-col w-40 justify-center">
-                    <div className="flex items-center justify-between text-[9px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
-                      <span>Review Progress</span>
-                      <span className={reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? "text-emerald-600" : "text-amber-600"}>{reviewedItemIds.size} / {totalItemsCount} Items</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-stone-200 rounded-full overflow-hidden">
-                      <div className={`h-full transition-all duration-500 ${reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'}`} style={{ width: `${progressPercent}%` }} />
-                    </div>
-                  </div>
-                );
-              })()}
+        {/* Center Section: Review Toggles (only visible when extractedSourceName is true) */}
+        <div className="flex-1 flex justify-center">
+          {currentView === "workspace" && extractedSourceName && (
+            <div className="flex items-center bg-stone-50 rounded-xl p-1.5 border border-stone-200 shadow-inner shrink-0">
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setIsAdvancedView(false)} 
+                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${!isAdvancedView ? 'bg-white shadow-sm text-stone-900 border border-stone-200': 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'}`}
+                >
+                  Standard
+                </button>
+                <button 
+                  onClick={() => setIsAdvancedView(true)} 
+                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${isAdvancedView ? 'bg-white shadow-sm text-blue-700 border border-blue-200': 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'}`}
+                >
+                  Advanced
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Global booking status info */}
-        <div className="flex items-center gap-3 lg:gap-4 shrink-0 pr-1">
-          {/* Warning Banner moved to navbar */}
+        {/* Right Section: Progress & Status */}
+        <div className="flex items-center gap-4 shrink-0">
+          {currentView === "workspace" && extractedSourceName && (
+            <div className="hidden xl:flex flex-col w-40 justify-center">
+              {(() => {
+                const totalItemsCount = events.reduce((acc, evt) => acc + Object.values(evt.requirements).reduce((sum, arr) => (sum as number) + (arr ? (arr as any[]).length : 0), 0), 0);
+                const progressPercent = totalItemsCount === 0 ? 100 : Math.round((reviewedItemIds.size / totalItemsCount) * 100);
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-[10px] font-bold text-stone-500 mb-1.5 uppercase tracking-wider">
+                      <span>Review Progress</span>
+                      <span className={reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? "text-emerald-600" : "text-amber-600"}>{reviewedItemIds.size} / {totalItemsCount}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-stone-200 rounded-full overflow-hidden flex items-center">
+                      <div className={`h-full transition-all duration-500 ${reviewedItemIds.size === totalItemsCount && totalItemsCount > 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'}`} style={{ width: `${progressPercent}%` }} />
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          <div className="h-8 w-px bg-stone-200 hidden xl:block" />
+
           {currentView !== "locked" && !cutoffLocked && (
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full shadow-sm">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
@@ -636,30 +632,24 @@ export default function App() {
             </div>
           )}
 
-          <div className="text-right flex items-center">
-            <div className={`flex items-center justify-center p-1.5 rounded-full border shadow-sm ${
-              currentView === "locked" || cutoffLocked
-                ? "bg-red-50 border-red-200"
-                : "bg-emerald-50 border-emerald-200"
-            }`} title={currentView === "locked" ? "Locked" : cutoffLocked ? "Past Cutoff" : "Open Draft"}>
-              <span className={`w-2.5 h-2.5 rounded-full ${currentView === "locked" || cutoffLocked ? "bg-red-600" : "bg-emerald-500 animate-pulse"}`} />
-            </div>
+          <div className={`flex items-center justify-center p-1.5 rounded-full shadow-sm ml-2 border ${
+            currentView === "locked" || cutoffLocked ? "bg-red-50 border-red-200" : "bg-emerald-50 border-emerald-200"
+          }`}>
+            <span className={`w-2.5 h-2.5 rounded-full ${currentView === "locked" || cutoffLocked ? "bg-red-600" : "bg-emerald-500 animate-pulse"}`} />
           </div>
 
-          <div className="h-7 w-px bg-stone-200 hidden sm:block" />
-
           {/* Current selected event counter indicator */}
-          <div className="bg-stone-50 border border-stone-200 px-2 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+          <div className="bg-stone-50 border border-stone-200 px-2 py-1.5 rounded-lg flex items-center gap-2 shadow-sm ml-2">
             <span className="text-[11px] font-mono font-bold bg-blue-600 text-white rounded w-6 h-6 flex items-center justify-center shadow-inner">
               {events.length}
             </span>
-            <span className="text-[10px] font-bold text-stone-600 hidden md:inline uppercase tracking-widest pt-0.5 pr-1">Events</span>
+            <span className="text-[10px] font-bold text-stone-600 hidden md:inline tracking-widest pt-0.5">EVENTS</span>
           </div>
         </div>
       </header>
 
       {/* MAIN CONTAINER AREA */}
-      <main className="flex-1 w-full px-2 sm:px-4 md:px-6 py-4">
+      <main className={`flex-1 w-full px-2 sm:px-4 md:px-6 py-4 flex flex-col`}>
         
         <AnimatePresence mode="wait">
           
@@ -685,7 +675,7 @@ export default function App() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
                       className="absolute inset-0 flex-1 w-full flex flex-col overflow-y-auto px-6 md:px-8" 
-                      id="ai-uploader-section"
+                      id="smart-uploader-section"
                     >
                       <div className="w-full h-full flex-1 flex flex-col items-stretch">
                         <ExcelExtractorMock
@@ -835,25 +825,21 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className=""
+              className="w-full"
               id="workspace-view-viewport"
             >
-              <div className={`flex flex-col md:flex-row gap-4 h-[750px] ${isAdvancedView ? 'overflow-x-auto w-full' : ''}`}>
-                
-                {/* COLUMN 0: SOURCE DOCUMENT */}
-                {isAdvancedView && extractedSourceName && (
-                  <SourceDocumentPanel
-                    sourceName={extractedSourceName}
-                    searchQuery={eventSearchQuery}
-                    setSearchQuery={setEventSearchQuery}
-                    filteredEvents={filteredEvents}
-                    selectedEventId={selectedEventId}
-                    setSelectedEventId={setSelectedEventId}
-                  />
-                )}
-
-                {/* ==================== COLUMN 1: INTERACTIVE EVENT SELECTOR (LEFT) ==================== */}
-                <div className={`${isAdvancedView ? 'w-[300px] shrink-0' : 'w-full md:w-[30%] lg:w-[25%]'} flex flex-col h-full`}>
+              {isAdvancedView ? (
+                <AdvancedReviewView
+                  events={events}
+                  setEvents={setEvents}
+                  sourceName={extractedSourceName || ""}
+                  reviewedItemIds={reviewedItemIds}
+                  setReviewedItemIds={setReviewedItemIds}
+                />
+              ) : (
+                <div className="flex flex-col md:flex-row gap-4 h-[85vh] min-h-[750px]">
+                  {/* ==================== COLUMN 1: INTERACTIVE EVENT SELECTOR (LEFT) ==================== */}
+                  <div className="w-full md:w-[30%] lg:w-[25%] flex flex-col h-full">
                   <div className="bg-white rounded-xl border border-stone-200 bardo-shadow-lg overflow-hidden flex flex-col h-full" id="event-directory-sidebar">
                     <div className="p-4.5 bg-stone-50 border-b border-stone-150">
                       <h3 className="font-serif text-sm font-bold text-stone-900 uppercase tracking-widest">Select Event</h3>
@@ -964,7 +950,7 @@ export default function App() {
                 </div>
 
                 {/* ==================== COLUMN 2: ACTIVE SPECIFICATIONS WORKSPACE (CENTER) ==================== */}
-                <div className={`${isAdvancedView ? 'w-[700px] shrink-0' : 'w-full md:w-[70%] lg:w-[75%]'} flex flex-col h-full`}>
+                <div className="w-full md:w-[70%] lg:w-[75%] flex flex-col h-full">
                   
                   <div className="bg-white rounded-xl border border-stone-200 shadow-md overflow-hidden h-full flex flex-col" id="requirements-workspace">
                     <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between flex-wrap gap-4 border-b border-slate-800 shrink-0">
@@ -1346,8 +1332,8 @@ export default function App() {
 
                   </div>
                 </div>
-
               </div>
+              )}
 
               {/* Full Banquet Event Order (BEO) preview Modal overlay */}
               {isBEOOpen && (
@@ -1499,12 +1485,12 @@ export default function App() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35 }}
-              className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col md:flex-row min-h-[calc(100vh-250px)]"
+              className="flex flex-col md:flex-row min-h-[calc(100vh-200px)] -mx-2 sm:-mx-4 md:-mx-6 -my-4 bg-gradient-to-br from-slate-50 via-white to-blue-50/50"
               id="submitted-locked-view"
             >
               {!cutoffLocked ? (
                 // PRE-SUBMISSION STATE (Final Review)
-                <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50/50 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
@@ -1540,7 +1526,7 @@ export default function App() {
                 </div>
               ) : (
                 // SUCCESS SUBMITTED STATE
-                <div className="flex-1 bg-gradient-to-br from-emerald-50 via-white to-blue-50/50 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="flex-1 p-6 md:p-8 lg:p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-200/20 rounded-full blur-3xl -mt-20 -mr-20 pointer-events-none"></div>
                   <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-200/20 rounded-full blur-3xl -mb-20 -ml-20 pointer-events-none"></div>
@@ -1584,7 +1570,7 @@ export default function App() {
               )}
 
               {/* Right Side: Next Steps (Visible in both states) */}
-              <div className="w-full md:w-[40%] xl:w-[35%] bg-slate-50 border-l border-slate-200 p-6 md:p-8 flex flex-col justify-center">
+              <div className="w-full md:w-[40%] xl:w-[35%] p-6 md:p-8 flex flex-col justify-center">
                 <h4 className="font-sans text-xl font-bold text-slate-800 mb-8 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-500" />
                   What Happens Next?
@@ -1770,20 +1756,20 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                  {/* AI Assistant Item */}
+                  {/* Smart Assistant Item */}
                   <div 
                     onClick={() => setActiveChatContext("ai")}
                     className={`p-3 border-b border-slate-200 cursor-pointer transition-colors ${activeChatContext === "ai" ? "bg-blue-50 border-l-4 border-l-blue-600" : "hover:bg-slate-100 border-l-4 border-l-transparent"}`}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-bold text-slate-800">AI Event Assistant</span>
+                      <span className="text-sm font-bold text-slate-800">Event Assistant</span>
                       <span className="text-[10px] text-slate-500 font-mono">Online</span>
                     </div>
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Bot className={`w-3.5 h-3.5 ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`} />
-                      <span className={`text-[10px] font-semibold ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`}>24/7 AI Support</span>
+                      <span className={`text-[10px] font-semibold ${activeChatContext === "ai" ? "text-blue-600" : "text-emerald-600"}`}>24/7 Smart Support</span>
                     </div>
-                    <p className="text-[10px] text-slate-600 line-clamp-2">"Hi! I am your AI assistant for Hotel Bardo Savannah..."</p>
+                    <p className="text-[10px] text-slate-600 line-clamp-2">"Hi! I am your Event assistant for Hotel Bardo Savannah..."</p>
                   </div>
 
                   {/* Selected Item / Coordinator Item */}
@@ -1854,7 +1840,7 @@ export default function App() {
                 <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-start justify-between shrink-0">
                   <div className="pr-10">
                     <h2 className="text-base font-bold text-slate-800 leading-snug">
-                       {activeChatContext === "coordinator" ? "Coordinator Chat" : "AI Event Assistant"}
+                       {activeChatContext === "coordinator" ? "Coordinator Chat" : "Event Assistant"}
                     </h2>
                     <div className="flex items-center gap-2 mt-1">
                        {activeChatContext === "coordinator" ? (
@@ -1865,7 +1851,7 @@ export default function App() {
                        ) : (
                          <>
                            <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[8px] flex items-center justify-center border border-blue-200"><Bot className="w-2.5 h-2.5" /></div>
-                           <span className="text-[10px] text-slate-500"><strong>AI Assistant</strong> - Always Online</span>
+                           <span className="text-[10px] text-slate-500"><strong>Event Assistant</strong> - Always Online</span>
                          </>
                        )}
                     </div>
@@ -1914,7 +1900,7 @@ export default function App() {
                                className={`flex flex-col gap-1 max-w-[85%] ${isAi ? "self-start" : "self-end items-end text-right ml-auto"}`}
                              >
                                <div className="flex items-center gap-1 text-[9px] text-slate-400 font-mono">
-                                 <span className="font-semibold text-slate-600">{isAi ? "AI Assistant" : booking.contactName}</span>
+                                 <span className="font-semibold text-slate-600">{isAi ? "Event Assistant" : booking.contactName}</span>
                                  <span>Just now</span>
                                </div>
                                <div className={`p-3 rounded-2xl text-xs leading-relaxed border ${
@@ -1930,7 +1916,7 @@ export default function App() {
                          {isChatTyping && (
                            <div className="text-slate-400 italic text-[10px] animate-pulse flex items-center gap-1.5 py-1">
                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" />
-                             <span>AI is thinking...</span>
+                             <span>Assistant is thinking...</span>
                            </div>
                          )}
                       </>
@@ -1944,7 +1930,7 @@ export default function App() {
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={activeChatContext === "coordinator" ? "Reply to Larissa in portal..." : "Ask AI planner..."}
+                      placeholder={activeChatContext === "coordinator" ? "Reply to Larissa in portal..." : "Ask Assistant..."}
                       className={`flex-1 bg-slate-50 border border-slate-200 py-2 pl-3 pr-10 text-xs rounded-xl focus:outline-none focus:bg-white transition-colors ${activeChatContext === "coordinator" ? "focus:border-indigo-500" : "focus:border-blue-500"}`}
                     />
                     <button
@@ -1964,7 +1950,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Corporate footer info */}
-      <footer className="border-t border-stone-200 py-6 text-center text-xs text-stone-400 font-mono mt-8 print:hidden">
+      <footer className="border-t border-stone-200 py-6 text-center text-xs text-stone-400 font-mono print:hidden">
         <p>&copy; 2026 {booking.propertyName} &bull; All Rights Reserved.</p>
         <p className="text-[10px] text-stone-400 mt-1">ConfServ Event Workspace Customer Portal &bull; Secure link validated</p>
       </footer>
